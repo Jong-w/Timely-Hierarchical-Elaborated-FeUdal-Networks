@@ -26,10 +26,19 @@ Feudalnetwork 함수 수정: Perception에 주는 인수 input_dim <- (input_dim
 
 Perception 함수 mlp Linear 수정: (input_dim[-1] * input_dim[0] * input_dim[1]) <- (input_dim)
 
+## Multi-Manager가 되도록 수정
+
+init_obj(Feudalnnets 클래스에 포함되어 있는)에 higher_goals, higher_states 추가
+
+main.py 92 줄에서 higher_goals, higher_states까지 가져오도록 수정
+
+forward에서 higher_goals, higher_states까지 받아오도록 하고 goals, states와 같은 처리를 진행
+
+
 ## 앞으로 추가할 사항
 
 four-room, empty 외의 환경 하나 더 찾기
-Multi Manager 구현
+
 
 ## Problems
 
