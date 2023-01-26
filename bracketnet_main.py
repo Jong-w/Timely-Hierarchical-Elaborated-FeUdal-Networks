@@ -36,7 +36,7 @@ parser.add_argument('--time-horizon', type=int, default=10,
 parser.add_argument('--hidden-dim-manager', type=int, default=32,
                     help='Hidden dim (d)')
 parser.add_argument('--hidden-dim-supervisor', type=int, default=16,
-                    help='Hidden dim (s)')
+                    help='Hidden dim (n)')
 parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
 parser.add_argument('--gamma-w', type=float, default=0.99,

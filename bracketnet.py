@@ -29,7 +29,7 @@ class FeudalNetwork(nn.Module):
         self.b = num_workers
         self.c = time_horizon
         self.d = hidden_dim_manager
-        self.s = hidden_dim_supervisor
+        self.n = hidden_dim_supervisor
         self.k = hidden_dim_worker
         self.r = dilation
         self.n_actions = n_actions
@@ -38,8 +38,8 @@ class FeudalNetwork(nn.Module):
         self.preprocessor = Preprocessor(input_dim, device, mlp, partial)
         self.percept = Perception(input_dim, self.d, mlp)
         self.manager = Manager(self.c, self.d, self.r, args, device)
-        self.supervisor = Supervisor(self.c, self.d, self.s, self.r, args, device)
-        self.worker = Worker(self.b, self.c, self.d, self.s, self.k, n_actions, device)
+        self.supervisor = Supervisor(self.c, self.d, self.n, self.r, args, device)
+        self.worker = Worker(self.b, self.c, self.d, self.n, self.k, n_actions, device)
 
         self.hidden_m = init_hidden(args.num_workers, self.r * self.d,
                                     device=device, grad=True)
@@ -130,7 +130,6 @@ class FeudalNetwork(nn.Module):
         masks = [torch.ones(self.b, 1).to(self.device) for _ in range(2*self.c+1)]
         return goals_m, states_m, goals_s, states_s,  masks
 
-
 class Perception(nn.Module):
     def __init__(self, input_dim, d, mlp=False, partial=1):
         super().__init__()
@@ -156,7 +155,6 @@ class Perception(nn.Module):
 
     def forward(self, x):
         return self.percept(x)
-
 
 class Manager(nn.Module):
     def __init__(self, c, d, r, args, device):
@@ -218,19 +216,19 @@ class Manager(nn.Module):
         return cosine_dist
 
 class Supervisor(nn.Module):
-    def __init__(self, c, d, s, r, args, device, ):
+    def __init__(self, c, d, n, r, args, device, ):
         super().__init__()
         self.c = c  # Time Horizon
         self.d = d  # Hidden dimension size
         self.r = r  # Dilation level
         self.eps = args.eps
         self.device = device
-        self.s = s
+        self.n = n
 
-        self.Sspace = nn.Linear(self.d, self.s)
-        self.phi = nn.Linear(self.d, self.s, bias=False)
-        self.Srnn = DilatedLSTM(self.s, self.s, self.r)
-        self.critic = nn.Linear(self.s, 1)
+        self.Sspace = nn.Linear(self.d, self.n)
+        self.phi = nn.Linear(self.d, self.n, bias=False)
+        self.Srnn = DilatedLSTM(self.n, self.n, self.r)
+        self.critic = nn.Linear(self.n, 1)
 
     def forward(self, z, goal_m, hidden, mask):
         state = self.Sspace(z).relu()
@@ -275,17 +273,17 @@ class Supervisor(nn.Module):
         return cosine_dist
 
 class Worker(nn.Module):
-    def __init__(self, b, c, d, s, k, num_actions, device):
+    def __init__(self, b, c, d, n, k, num_actions, device):
         super().__init__()
         self.b = b
         self.c = c
         self.k = k
-        self.s = s
+        self.n = n
         self.num_actions = num_actions
         self.device = device
 
         self.Wrnn = nn.LSTMCell(d, k * self.num_actions)
-        self.phi = nn.Linear(self.s, k, bias=False)
+        self.phi = nn.Linear(self.n, k, bias=False)
 
         self.critic = nn.Sequential(
             nn.Linear(k * num_actions, 50),
@@ -357,7 +355,6 @@ class Worker(nn.Module):
 
         r_i = r_i.detach()
         return r_i / self.c
-
 
 def feudal_loss(storage, next_v_m, next_v_s, next_v_w, args):
     """Calculate the loss for Worker and Manager,
