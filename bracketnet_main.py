@@ -2,8 +2,7 @@ import argparse
 import torch
 
 from utils import make_envs, take_action, init_obj
-#from feudalnet import FeudalNetwork, feudal_loss
-from Mfeudalnets import FeudalNetwork, feudal_loss
+from bracketnet import FeudalNetwork, feudal_loss
 from storage import Storage
 from logger import Logger
 
@@ -36,10 +35,14 @@ parser.add_argument('--time-horizon', type=int, default=10,
                     help='Manager horizon (c)')
 parser.add_argument('--hidden-dim-manager', type=int, default=32,
                     help='Hidden dim (d)')
+parser.add_argument('--hidden-dim-supervisor', type=int, default=16,
+                    help='Hidden dim (s)')
 parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
 parser.add_argument('--gamma-w', type=float, default=0.99,
                     help="discount factor worker")
+parser.add_argument('--gamma-s', type=float, default=0.99,
+                    help="discount factor supervisor")
 parser.add_argument('--gamma-m', type=float, default=0.999,
                     help="discount factor manager")
 parser.add_argument('--alpha', type=float, default=0.5,
@@ -79,6 +82,7 @@ def experiment(args):
         num_workers=args.num_workers,
         input_dim=(7, 7, 3), #envs.observation_space.shape
         hidden_dim_manager=args.hidden_dim_manager,
+        hidden_dim_supervisor=args.hidden_dim_supervisor,
         hidden_dim_worker=args.hidden_dim_worker,
         n_actions=envs.single_action_space.n,
         time_horizon=args.time_horizon,
@@ -90,23 +94,24 @@ def experiment(args):
 
     optimizer = torch.optim.RMSprop(feudalnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)
-    goals, higher_goals, states, higher_states, masks = feudalnet.init_obj()
+    goals_m, states_m, goals_s, states_s, masks = feudalnet.init_obj()
 
     x = envs.reset()
     step = 0
     while step < args.max_steps:
 
-        # Detaching LSTMs and goals
+        # Detaching LSTMs and goals_m
         feudalnet.repackage_hidden()
-        goals = [g.detach() for g in goals]
+        goals_m = [g.detach() for g in goals_m]
+        goals_s = [g.detach() for g in goals_s]
         storage = Storage(size=args.num_steps,
-                          keys=['r', 'r_i', 'v_w', 'v_m', 'logp', 'entropy',
-                                's_goal_cos', 'mask', 'ret_w', 'ret_m',
+                          keys=['r', 'r_i', 'v_w', 'v_s', 'v_m', 'logp', 'entropy',
+                                's_goal_cos', 'g_goal_cos','mask', 'ret_w', 'ret_s', 'ret_m',
                                 'adv_m', 'adv_w'])
 
         for _ in range(args.num_steps):
-            action_dist, goals, states, value_m, value_w \
-                 = feudalnet(x, goals, higher_goals, states, higher_states, masks[-1])
+            action_dist, goals_m, states_m, value_m, goals_s, states_s, value_s, value_w \
+                = feudalnet(x, goals_m, states_m, goals_s, states_s, masks[-1])
 
             # Take a step, log the info, get the next state
             action, logp, entropy = take_action(action_dist)
@@ -119,25 +124,29 @@ def experiment(args):
 
             storage.add({
                 'r': torch.FloatTensor(reward).unsqueeze(-1).to(device),
-                'r_i': feudalnet.intrinsic_reward(states, goals, masks),
+                'r_i': feudalnet.intrinsic_reward(states_s, goals_s, masks),
                 'v_w': value_w,
+                'v_s': value_s,
                 'v_m': value_m,
                 'logp': logp.unsqueeze(-1),
                 'entropy': entropy.unsqueeze(-1),
-                's_goal_cos': feudalnet.state_goal_cosine(states, goals, masks),
+                's_goal_cos': feudalnet.state_goal_cosine(states_s, goals_s, masks),
+                'g_goal_cos': feudalnet.goal_goal_cosine(goals_m, goals_s,  masks),
                 'm': mask
             })
 
             step += args.num_workers
 
         with torch.no_grad():
-            *_, next_v_m, next_v_w = feudalnet(
-                x, goals, higher_goals, states, higher_states, mask, save=False)
+            _, _, _, next_v_m, _, _, next_v_s, next_v_w = feudalnet(
+                x, goals_m, states_m, goals_s, states_s, mask, save=False)
+
             next_v_m = next_v_m.detach()
+            next_v_s = next_v_s.detach()
             next_v_w = next_v_w.detach()
 
         optimizer.zero_grad()
-        loss, loss_dict = feudal_loss(storage, next_v_m, next_v_w, args)
+        loss, loss_dict = feudal_loss(storage, next_v_m, next_v_s, next_v_w, args)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(feudalnet.parameters(), args.grad_clip)
         optimizer.step()

@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=0.0005,
                     help='learning rate')
-parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
+parser.add_argument('--env-name', type=str, default='MiniGrid-Empty-16x16-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')

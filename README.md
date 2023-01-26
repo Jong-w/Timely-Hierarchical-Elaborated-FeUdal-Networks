@@ -1,11 +1,3 @@
-## Basic Info
-Fun(Feudalnets)코드의 main.py를 실행해 코드를 돌릴 수 있음
-
-gym-minigrid는 minigrid 환경 코드임
-
-FunMM(Feudalnets Multi Manager)의 코드를 수정해 manager를 추가해 실험할 예정
-
-
 ## Updates
 ### conv 되도록 수정
 
@@ -26,25 +18,39 @@ Feudalnetwork 함수 수정: Perception에 주는 인수 input_dim <- (input_dim
 
 Perception 함수 mlp Linear 수정: (input_dim[-1] * input_dim[0] * input_dim[1]) <- (input_dim)
 
-## Multi-Manager가 되도록 수정
+## manager-Supervisor-Worker 코드로 수정
 
-init_obj(Feudalnnets 클래스에 포함되어 있는)에 higher_goals, higher_states 추가
+1. hidden_dim_supervisor,gamma_s(supervisor discount factor)  인수 추가
 
-main.py 92 줄에서 higher_goals, higher_states까지 가져오도록 수정
+2. init_obj에 goal_s, state_s(supervisor) 추가 
 
-forward에서 higher_goals, higher_states까지 받아오도록 하고 goals, states와 같은 처리를 진행
+    -> template_m과 template_s로 나누어 goal_m, state_m과 goal_s, state_s의 형태를 다르게 세팅
 
+    -> >manager의 goals, states는 _m을 붙여서 처리, supervisor의 goals, states는 _s를 붙여서 처리
+
+3. supervisor detach
+4. supervisor의 loss는 state_goal_cosine: d_cos(states_s[t + self.c] - states_s[t], goals_s[t])
+5. manager의 loss는 goal_goal,cosine: d_cos(goals_s_present - goals_s_past, goals_m[t])
+
+    -> goals_m의 값을 supervisor에서 반영한 정도를 지표로 사용
+   
+    ->present, past 모두 각 시점의 goals_s를 concat해서 goals_m과 형태를 맞춰줌
+
+6. 임시 이름은 bracketnet으로 지었으나 아직 확정하지 않아 feudalnet 함수 이름을 그대로 사용
+7. feudal_loss에 ret_m, ret_ 같이 supervisor의 discount reward 추가
+8. 총 loss: - loss_worker - ((loss_manager + loss_supervisor)/2) + value_w_loss + value_m_loss - args.entropy_coef * entropy
 
 ## 앞으로 추가할 사항
 
-four-room, empty 외의 환경 하나 더 찾기
 
 
-## Problems
+## Questions
 
-Doorkey 같이 manager들이 만들어내는 목적들이 가르키는 방향이 다를 수 있는 경우는 어떻게 해야 하는가? 
-열쇠를 가지기 전에는 그것을 목적으로 하는 것이 중요하고, 가진 후에는 초록색 목적지로 가는 것이 중요하다,
-임무 수행 과정에 따라 어떤 목적에 우선 순위를 어떻게 다르게 두느냐가 문제.
+manager의 goal_goal_cosine에서 past와 present를 각 시점 goals_s를 concat하는 방식을 적용했읋 때, goals_m과 비교하기에 무리가 없는가? 
+
+supervisor의 srnn에 넣는 값을 (manager_goal + state)로 했을 때. 제대로 manager의 정보와 supervisor의 정보가 반영되는 것인가?
+
+feudal_loss에 임시로 supervisor_loss를 집어넣은 것인데, 원래 loss 수식을 만들때 수학적 과정이 있을 것이라 생각하는데 어떻게 하는 것인가?
 
 
 ## Env
