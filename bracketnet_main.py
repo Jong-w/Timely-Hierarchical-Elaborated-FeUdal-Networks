@@ -7,11 +7,11 @@ from storage import Storage
 from logger import Logger
 
 
-parser = argparse.ArgumentParser(description='Feudal Nets')
+parser = argparse.ArgumentParser(description='Bracket Nets')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=0.0005,
                     help='learning rate')
-parser.add_argument('--env-name', type=str, default='MiniGrid-Empty-16x16-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
+parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
@@ -33,15 +33,15 @@ parser.add_argument('--partial', type=int, default=1,
 # SPECIFIC FEUDALNET PARAMETERS
 parser.add_argument('--time-horizon', type=int, default=10,
                     help='Manager horizon (c)')
-parser.add_argument('--hidden-dim-manager', type=int, default=32,
+parser.add_argument('--hidden-dim-manager', type=int, default=16,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-supervisor', type=int, default=16,
+parser.add_argument('--hidden-dim-supervisor', type=int, default=32,
                     help='Hidden dim (n)')
-parser.add_argument('--hidden-dim-worker', type=int, default=16,
+parser.add_argument('--hidden-dim-worker', type=int, default=8,
                     help='Hidden dim for worker (k)')
 parser.add_argument('--gamma-w', type=float, default=0.99,
                     help="discount factor worker")
-parser.add_argument('--gamma-s', type=float, default=0.99,
+parser.add_argument('--gamma-s', type=float, default=0.999,
                     help="discount factor supervisor")
 parser.add_argument('--gamma-m', type=float, default=0.999,
                     help="discount factor manager")
@@ -67,7 +67,7 @@ def experiment(args):
                                    int(args.max_steps) // 10).numpy())
 
     # logger = Logger(args.run_name, args)
-    logger = Logger(args.env_name, args)
+    logger = Logger(args.env_name, 'Bracket_Nets', args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
     device = torch.device("cuda" if cuda_is_available else "cpu")
     args.device = device
@@ -167,7 +167,7 @@ def experiment(args):
         'args': args,
         'processor_mean': feudalnet.preprocessor.rms.mean,
         'optim': optimizer.state_dict()},
-        f'models/{args.env_name}_{args.run_name}_steps={step}.pt')
+        f'models/{args.env_name}_{args.run_name}_BracketNets_steps={step}.pt')
 
 
 def main(args):

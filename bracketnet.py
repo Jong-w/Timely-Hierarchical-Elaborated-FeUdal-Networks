@@ -43,6 +43,8 @@ class FeudalNetwork(nn.Module):
 
         self.hidden_m = init_hidden(args.num_workers, self.r * self.d,
                                     device=device, grad=True)
+        self.hidden_s = init_hidden(args.num_workers, self.r * self.n,
+                                    device=device, grad=True)
         self.hidden_w = init_hidden(args.num_workers, self.k * n_actions,
                                     device=device, grad=True)
 
@@ -75,7 +77,7 @@ class FeudalNetwork(nn.Module):
             z, self.hidden_m, mask)
 
         goal_s, hidden_s, state_s, value_s = self.supervisor(
-            z, goal_m, self.hidden_m, mask)
+            z, goal_m, self.hidden_s, mask)
 
         # Ensure that we only have a list of size 2*c + 1, and we use FiLo
         if len(goals_m) > (2 * self.c + 1):
@@ -122,7 +124,7 @@ class FeudalNetwork(nn.Module):
 
     def init_obj(self):
         template_m = torch.zeros(self.b, self.d)
-        template_s = torch.zeros(self.b, self.s)
+        template_s = torch.zeros(self.b, self.n)
         goals_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c+1)]
         states_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c+1)]
         goals_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c + 1)]
@@ -207,10 +209,9 @@ class Manager(nn.Module):
         t = self.c
         mask = torch.stack(masks[t: t + self.c - 1]).prod(dim=0)
 
-        goals_s_past = torch.cat([goals_s[t - 1], goals_s[t - 1]], dim=1)
-        goals_s_present = torch.cat([goals_s[t], goals_s[t]], dim=1)
+        goals_m_ = torch.cat([goals_m[t], goals_m[t]], dim=1)
 
-        cosine_dist = d_cos(goals_s_present - goals_s_past, goals_m[t])
+        cosine_dist = d_cos(goals_s[t] - goals_s[t - 1], goals_m_)
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
 
         return cosine_dist
