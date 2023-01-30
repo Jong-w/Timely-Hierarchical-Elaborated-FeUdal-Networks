@@ -211,7 +211,7 @@ class Manager(nn.Module):
 
         goals_m_ = torch.cat([goals_m[t], goals_m[t]], dim=1)
 
-        cosine_dist = d_cos(goals_s[t] - goals_s[t - 1], goals_m_)
+        cosine_dist = d_cos(goals_s[t] - goals_s[t - self.c], goals_m_)
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
 
         return cosine_dist
