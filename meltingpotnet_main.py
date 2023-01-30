@@ -2,7 +2,7 @@ import argparse
 import torch
 
 from utils import make_envs, take_action, init_obj
-from bracketnet import FeudalNetwork, feudal_loss
+from meltingpotnet import FeudalNetwork, feudal_loss
 from storage import Storage
 from logger import Logger
 
