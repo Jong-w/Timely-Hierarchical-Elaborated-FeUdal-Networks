@@ -7,7 +7,7 @@ from preprocess import Preprocessor
 from dilated_lstm import DilatedLSTM
 
 
-class FeudalNetwork(nn.Module):
+class MPnets(nn.Module):
     def __init__(self,
                  num_workers,
                  input_dim,
@@ -21,7 +21,7 @@ class FeudalNetwork(nn.Module):
                  mlp=True,
                  args=None,
                  partial=1):
-        """naming convention inside the FeudalNetwork is selected
+        """naming convention inside the MPnets is selected
         to match paper variable naming convention.
         """
 
@@ -236,7 +236,7 @@ class Supervisor(nn.Module):
         manager_goal = self.phi(goal_m)
         hidden = (mask * hidden[0], mask * hidden[1])
         goal_, hidden = self.Srnn(state, hidden)
-        goal_hat = goal_ + manager_goal
+        goal_hat = manager_goal + goal_
         value_est = self.critic(goal_hat)
 
         # From goal_hat to goal
@@ -358,7 +358,7 @@ class Worker(nn.Module):
         r_i = r_i.detach()
         return r_i / self.c
 
-def feudal_loss(storage, next_v_m, next_v_s, next_v_w, args):
+def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
     """Calculate the loss for Worker and Manager,
 
     with timesteps T, batch size B and hidden dim D. Each of the objects
@@ -414,7 +414,7 @@ def feudal_loss(storage, next_v_m, next_v_s, next_v_w, args):
 
     loss = - loss_worker - ((loss_manager + loss_supervisor)/2) + value_w_loss + value_m_loss - args.entropy_coef * entropy
 
-    return loss, {'loss/total_fun_loss': loss.item(),
+    return loss, {'loss/total_mp_loss': loss.item(),
                   'loss/worker': loss_worker.item(),
                   'loss/manager': loss_manager.item(),
                   'loss/value_worker': value_w_loss.item(),

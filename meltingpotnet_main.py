@@ -2,12 +2,12 @@ import argparse
 import torch
 
 from utils import make_envs, take_action, init_obj
-from meltingpotnet import FeudalNetwork, feudal_loss
+from meltingpotnet import MPnets, mp_loss
 from storage import Storage
 from logger import Logger
 
 
-parser = argparse.ArgumentParser(description='Bracket Nets')
+parser = argparse.ArgumentParser(description='MPnet')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=0.0005,
                     help='learning rate')
@@ -78,7 +78,7 @@ def experiment(args):
         torch.backends.cudnn.benchmark = False
 
     envs = make_envs(args.env_name, args.num_workers, args.seed, args.partial)
-    feudalnet = FeudalNetwork(
+    MPnet = MPnets(
         num_workers=args.num_workers,
         input_dim=(7, 7, 3), #envs.observation_space.shape
         hidden_dim_manager=args.hidden_dim_manager,
@@ -92,16 +92,16 @@ def experiment(args):
         args=args,
         partial=args.partial)
 
-    optimizer = torch.optim.RMSprop(feudalnet.parameters(), lr=args.lr,
+    optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)
-    goals_m, states_m, goals_s, states_s, masks = feudalnet.init_obj()
+    goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
 
     x = envs.reset()
     step = 0
     while step < args.max_steps:
 
         # Detaching LSTMs and goals_m
-        feudalnet.repackage_hidden()
+        MPnet.repackage_hidden()
         goals_m = [g.detach() for g in goals_m]
         goals_s = [g.detach() for g in goals_s]
         storage = Storage(size=args.num_steps,
@@ -111,7 +111,7 @@ def experiment(args):
 
         for _ in range(args.num_steps):
             action_dist, goals_m, states_m, value_m, goals_s, states_s, value_s, value_w \
-                = feudalnet(x, goals_m, states_m, goals_s, states_s, masks[-1])
+                = MPnet(x, goals_m, states_m, goals_s, states_s, masks[-1])
 
             # Take a step, log the info, get the next state
             action, logp, entropy = take_action(action_dist)
@@ -124,21 +124,21 @@ def experiment(args):
 
             storage.add({
                 'r': torch.FloatTensor(reward).unsqueeze(-1).to(device),
-                'r_i': feudalnet.intrinsic_reward(states_s, goals_s, masks),
+                'r_i': MPnet.intrinsic_reward(states_s, goals_s, masks),
                 'v_w': value_w,
                 'v_s': value_s,
                 'v_m': value_m,
                 'logp': logp.unsqueeze(-1),
                 'entropy': entropy.unsqueeze(-1),
-                's_goal_cos': feudalnet.state_goal_cosine(states_s, goals_s, masks),
-                'g_goal_cos': feudalnet.goal_goal_cosine(goals_m, goals_s,  masks),
+                's_goal_cos': MPnet.state_goal_cosine(states_s, goals_s, masks),
+                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
                 'm': mask
             })
 
             step += args.num_workers
 
         with torch.no_grad():
-            _, _, _, next_v_m, _, _, next_v_s, next_v_w = feudalnet(
+            _, _, _, next_v_m, _, _, next_v_s, next_v_w = MPnet(
                 x, goals_m, states_m, goals_s, states_s, mask, save=False)
 
             next_v_m = next_v_m.detach()
@@ -146,26 +146,26 @@ def experiment(args):
             next_v_w = next_v_w.detach()
 
         optimizer.zero_grad()
-        loss, loss_dict = feudal_loss(storage, next_v_m, next_v_s, next_v_w, args)
+        loss, loss_dict = mp_loss(storage, next_v_m, next_v_s, next_v_w, args)
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(feudalnet.parameters(), args.grad_clip)
+        torch.nn.utils.clip_grad_norm_(MPnet.parameters(), args.grad_clip)
         optimizer.step()
         logger.log_scalars(loss_dict, step)
 
         if len(save_steps) > 0 and step > save_steps[0]:
             torch.save({
-                'model': feudalnet.state_dict(),
+                'model': MPnet.state_dict(),
                 'args': args,
-                'processor_mean': feudalnet.preprocessor.rms.mean,
+                'processor_mean': MPnet.preprocessor.rms.mean,
                 'optim': optimizer.state_dict()},
                 f'models/{args.env_name}_{args.run_name}_step={step}.pt')
             save_steps.pop(0)
 
     envs.close()
     torch.save({
-        'model': feudalnet.state_dict(),
+        'model': MPnet.state_dict(),
         'args': args,
-        'processor_mean': feudalnet.preprocessor.rms.mean,
+        'processor_mean': MPnet.preprocessor.rms.mean,
         'optim': optimizer.state_dict()},
         f'models/{args.env_name}_{args.run_name}_BracketNets_steps={step}.pt')
 
