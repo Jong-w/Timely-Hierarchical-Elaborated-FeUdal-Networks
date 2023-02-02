@@ -118,22 +118,37 @@ class Perception(nn.Module):
 
         if partial:
             input_dim = (56, 56, 3)
-
-        if mlp:
-            self.percept = nn.Sequential(
-                nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
-                nn.ReLU(),
-                nn.Linear(64, d),
-                nn.ReLU())
+            if mlp:
+                self.percept = nn.Sequential(
+                    nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
+                    nn.ReLU(),
+                    nn.Linear(64, d),
+                    nn.ReLU())
+            else:
+                self.percept = nn.Sequential(
+                    nn.Conv2d(3, 16, kernel_size=5, stride=3),
+                    nn.ReLU(),
+                    nn.Conv2d(16, 32, kernel_size=3, stride=3),
+                    nn.ReLU(),
+                    nn.modules.Flatten(),
+                    nn.Linear(32 * 6 * 6, d),
+                    nn.ReLU())
         else:
-            self.percept = nn.Sequential(
-                nn.Conv2d(3, 16, kernel_size=3, stride=1),
-                nn.ReLU(),
-                nn.Conv2d(16, 32, kernel_size=2, stride=1),
-                nn.ReLU(),
-                nn.modules.Flatten(),
-                nn.Linear(32*4*4, d),
-                nn.ReLU())
+            if mlp:
+                self.percept = nn.Sequential(
+                    nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
+                    nn.ReLU(),
+                    nn.Linear(64, d),
+                    nn.ReLU())
+            else:
+                self.percept = nn.Sequential(
+                    nn.Conv2d(3, 16, kernel_size=3, stride=1),
+                    nn.ReLU(),
+                    nn.Conv2d(16, 32, kernel_size=3, stride=1),
+                    nn.ReLU(),
+                    nn.modules.Flatten(),
+                    nn.Linear(32 * 4 * 4, d),
+                    nn.ReLU())
 
     def forward(self, x):
         return self.percept(x)

@@ -25,7 +25,7 @@ parser.add_argument('--grad-clip', type=float, default=5.,
                     help='Gradient clipping (recommended).')
 parser.add_argument('--entropy-coef', type=float, default=0.01,
                     help='Entropy coefficient to encourage exploration.')
-parser.add_argument('--mlp', type=int, default=1,
+parser.add_argument('--mlp', type=int, default=0,
                     help='toggle to feedforward ML architecture')
 parser.add_argument('--partial', type=int, default=1,
                     help='use partial information of the env')
