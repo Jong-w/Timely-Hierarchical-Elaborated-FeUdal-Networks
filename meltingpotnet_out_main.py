@@ -31,6 +31,10 @@ parser.add_argument('--partial', type=int, default=1,
                     help='use partial information of the env')
 
 # SPECIFIC FEUDALNET PARAMETERS
+parser.add_argument('--time-horizon_manager', type=int, default=20,
+                    help='Manager horizon (c_m)')
+parser.add_argument('--time-horizon_supervisor', type=int, default=5,
+                    help='Manager horizon (c_s)')
 parser.add_argument('--time-horizon', type=int, default=10,
                     help='Manager horizon (c)')
 parser.add_argument('--hidden-dim-manager', type=int, default=16,
@@ -49,7 +53,7 @@ parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
 parser.add_argument('--eps', type=float, default=int(1e-5),
                     help='Random Gausian goal for exploration')
-parser.add_argument('--dilation', type=int, default=10,
+parser.add_argument('--dilation', type=int, default=1,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
@@ -85,7 +89,8 @@ def experiment(args):
         hidden_dim_supervisor=args.hidden_dim_supervisor,
         hidden_dim_worker=args.hidden_dim_worker,
         n_actions=envs.single_action_space.n,
-        time_horizon=args.time_horizon,
+        time_horizon_manager=args.time_horizon_manager,
+        time_horizon_supervisor=args.time_horizon_supervisor,
         dilation=args.dilation,
         device=device,
         mlp=args.mlp,
