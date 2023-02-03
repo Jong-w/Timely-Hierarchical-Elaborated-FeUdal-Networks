@@ -3,7 +3,7 @@ This file is filled with miscelaneous classes and functions.
 """
 import gym
 from gym.wrappers import AtariPreprocessing, TransformReward
-from gym_minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper
+from gym_minigrid.wrappers import RGBImgPartialObsWrapper, ImgObsWrapper, FullyObsWrapper, RGBImgObsWrapper, RGBImgObsWrapper
 ###############################################
 import gym
 import gym_minigrid
@@ -12,6 +12,7 @@ from gym_minigrid.window import Window
 ###############################################
 import torch
 import numpy as np
+import cv2
 
 from torch.distributions import Categorical
 
@@ -58,7 +59,15 @@ def basic_partial_wrapper(env):
     env = RGBImgPartialObsWrapper(env)
     env = ImgObsWrapper(env)
     env = ReturnWrapper(env)
-    env = TransformReward(env, lambda r: np.clip(r, -1, 1))
+    # env = TransformReward(env, lambda r: np.clip(r, -1, 1))
+    return env
+def basic_birdview_wrapper(env):
+    """Use this as a wrapper only for cartpole etc."""
+    # env = RGBImgPartialObsWrapper(env)
+    env = RGBImgObsWrapper(env)
+    env = ImgObsWrapper(env)
+    env = ReturnWrapper(env)
+    # env = TransformReward(env, lambda r: np.clip(r, -1, 1))
     return env
 
 def basic_wrapper(env):
@@ -87,7 +96,7 @@ def make_envs(env_name, num_envs, seed=0, partial=1):
     if is_atari:
         wrapper_fn = atari_wrapper
     elif partial:
-        wrapper_fn = basic_partial_wrapper
+        wrapper_fn = basic_birdview_wrapper
     else:
         wrapper_fn = basic_wrapper
 
@@ -123,3 +132,9 @@ def weight_init(layer):
         if layer.bias is not None:
             torch.nn.init.constant_(layer.bias.data, 0)
 
+
+if __name__=="__main__":
+    wrapper_fn = basic_birdview_wrapper
+    env = gym.vector.make('MiniGrid-FourRooms-v0', wrappers=wrapper_fn)
+    x = env.reset()
+    cv2.imwrite('one_fig.png', x.reshape((152, 152, 3)))

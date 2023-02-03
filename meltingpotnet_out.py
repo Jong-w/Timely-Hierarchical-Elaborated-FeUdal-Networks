@@ -21,7 +21,7 @@ class MPnets(nn.Module):
                  device='cuda',
                  mlp=True,
                  args=None,
-                 partial=1):
+                 whole=1):
         """naming convention inside the MPnets is selected
         to match paper variable naming convention.
         """
@@ -37,7 +37,7 @@ class MPnets(nn.Module):
         self.n_actions = n_actions
         self.device = device
 
-        self.preprocessor = Preprocessor(input_dim, device, mlp, partial)
+        self.preprocessor = Preprocessor(input_dim, device, mlp, whole)
         self.percept = Perception(input_dim, self.d, mlp)
         self.manager = Manager(self.c_m, self.c_s,  self.d, self.r, args, device)
         self.supervisor = Supervisor(self.c_m, self.c_s, self.d, self.n, self.r, args, device)
@@ -135,11 +135,11 @@ class MPnets(nn.Module):
         return goals_m, states_m, goals_s, states_s,  masks
 
 class Perception(nn.Module):
-    def __init__(self, input_dim, d, mlp=False, partial=1):
+    def __init__(self, input_dim, d, mlp=False, whole=1):
         super().__init__()
 
-        if partial:
-            input_dim = (56, 56, 3)
+        if whole:
+            input_dim = (152, 152, 3)
             if mlp:
                 self.percept = nn.Sequential(
                     nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
@@ -149,8 +149,10 @@ class Perception(nn.Module):
             else:
                 self.percept = nn.Sequential(
                     nn.Conv2d(3, 16, kernel_size=5, stride=3),
+                    nn.MaxPool2d(2),
                     nn.ReLU(),
-                    nn.Conv2d(16, 32, kernel_size=3, stride=3),
+                    nn.Conv2d(16, 32, kernel_size=3, stride=2),
+                    nn.MaxPool2d(2),
                     nn.ReLU(),
                     nn.modules.Flatten(),
                     nn.Linear(32 * 6 * 6, d),
@@ -434,7 +436,7 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
 
     entropy = entropy.mean()
 
-    loss = - loss_worker - loss_manager - loss_supervisor + value_w_loss + value_s_loss + value_m_loss - args.entropy_coef * entropy
+    loss = ((- loss_worker - loss_manager - loss_supervisor + value_w_loss + value_s_loss + value_m_loss)/6) * 4 - args.entropy_coef * entropy
 
     return loss, {'loss/total_mp_loss': loss.item(),
                   'loss/worker': loss_worker.item(),

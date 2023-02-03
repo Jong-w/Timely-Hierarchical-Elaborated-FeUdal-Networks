@@ -1,5 +1,6 @@
 import argparse
 import torch
+import cv2
 
 from utils import make_envs, take_action, init_obj
 from meltingpotnet_out import MPnets, mp_loss
@@ -10,7 +11,7 @@ from logger import Logger
 parser = argparse.ArgumentParser(description='MPnet')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=0.0005,
-                    help='learning rate')
+                    help='learning rate')                                       # 'MiniGrid-LockedRoom-v0','MiniGrid-RedBlueDoors-6x6-v0' 'MiniGrid-LockedRoom-v0'
 parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=16,
@@ -27,33 +28,31 @@ parser.add_argument('--entropy-coef', type=float, default=0.01,
                     help='Entropy coefficient to encourage exploration.')
 parser.add_argument('--mlp', type=int, default=0,
                     help='toggle to feedforward ML architecture')
-parser.add_argument('--partial', type=int, default=1,
-                    help='use partial information of the env')
+parser.add_argument('--whole', type=int, default=1,
+                    help='use whole information of the env')
 
 # SPECIFIC FEUDALNET PARAMETERS
 parser.add_argument('--time-horizon_manager', type=int, default=20,
                     help='Manager horizon (c_m)')
 parser.add_argument('--time-horizon_supervisor', type=int, default=5,
                     help='Manager horizon (c_s)')
-parser.add_argument('--time-horizon', type=int, default=10,
-                    help='Manager horizon (c)')
-parser.add_argument('--hidden-dim-manager', type=int, default=16,
+parser.add_argument('--hidden-dim-manager', type=int, default=32,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-supervisor', type=int, default=32,
+parser.add_argument('--hidden-dim-supervisor', type=int, default=64,
                     help='Hidden dim (n)')
-parser.add_argument('--hidden-dim-worker', type=int, default=8,
+parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
 parser.add_argument('--gamma-w', type=float, default=0.99,
                     help="discount factor worker")
 parser.add_argument('--gamma-s', type=float, default=0.999,
                     help="discount factor supervisor")
-parser.add_argument('--gamma-m', type=float, default=0.999,
+parser.add_argument('--gamma-m', type=float, default=0.9999,
                     help="discount factor manager")
 parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
 parser.add_argument('--eps', type=float, default=int(1e-5),
                     help='Random Gausian goal for exploration')
-parser.add_argument('--dilation', type=int, default=1,
+parser.add_argument('--dilation', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
@@ -71,7 +70,7 @@ def experiment(args):
                                    int(args.max_steps) // 10).numpy())
 
     # logger = Logger(args.run_name, args)
-    logger = Logger(args.env_name, 'Bracket_Nets', args)
+    logger = Logger(args.env_name, 'MPnetsv2', args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
     device = torch.device("cuda" if cuda_is_available else "cpu")
     args.device = device
@@ -81,7 +80,7 @@ def experiment(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-    envs = make_envs(args.env_name, args.num_workers, args.seed, args.partial)
+    envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
     MPnet = MPnets(
         num_workers=args.num_workers,
         input_dim=(7, 7, 3), #envs.observation_space.shape
@@ -95,7 +94,7 @@ def experiment(args):
         device=device,
         mlp=args.mlp,
         args=args,
-        partial=args.partial)
+        whole=args.whole)
 
     optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)
@@ -163,7 +162,7 @@ def experiment(args):
                 'args': args,
                 'processor_mean': MPnet.preprocessor.rms.mean,
                 'optim': optimizer.state_dict()},
-                f'models/{args.env_name}_{args.run_name}_step={step}.pt')
+                f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
             save_steps.pop(0)
 
     envs.close()
@@ -172,7 +171,7 @@ def experiment(args):
         'args': args,
         'processor_mean': MPnet.preprocessor.rms.mean,
         'optim': optimizer.state_dict()},
-        f'models/{args.env_name}_{args.run_name}_BracketNets_steps={step}.pt')
+        f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
 
 
 def main(args):
