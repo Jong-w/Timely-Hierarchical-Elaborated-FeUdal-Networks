@@ -126,12 +126,12 @@ class Perception(nn.Module):
                     nn.ReLU())
             else:
                 self.percept = nn.Sequential(
-                    nn.Conv2d(3, 16, kernel_size=3, stride=3),
+                    nn.Conv2d(3, 16, kernel_size=7, stride=5),
                     nn.ReLU(),
-                    nn.Conv2d(16, 32, kernel_size=4, stride=4),
+                    nn.Conv2d(16, 32, kernel_size=3, stride=3),
                     nn.ReLU(),
                     nn.modules.Flatten(),
-                    nn.Linear(32 * 8 * 4, d),
+                    nn.Linear(32 * 10 * 10, d),
                     nn.ReLU())
         else:
             if mlp:
