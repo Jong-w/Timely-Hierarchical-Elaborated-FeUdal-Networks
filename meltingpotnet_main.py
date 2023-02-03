@@ -70,7 +70,7 @@ def experiment(args):
                                    int(args.max_steps) // 10).numpy())
 
     # logger = Logger(args.run_name, args)
-    logger = Logger(args.env_name, 'MPnetsv2', args)
+    logger = Logger(args.env_name, 'MPnetsv1', args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
     device = torch.device("cuda" if cuda_is_available else "cpu")
     args.device = device
@@ -162,7 +162,7 @@ def experiment(args):
                 'args': args,
                 'processor_mean': MPnet.preprocessor.rms.mean,
                 'optim': optimizer.state_dict()},
-                f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
+                f'models/{args.env_name}_{args.run_name}_MPnetv1_steps={step}.pt')
             save_steps.pop(0)
 
     envs.close()
@@ -171,7 +171,7 @@ def experiment(args):
         'args': args,
         'processor_mean': MPnet.preprocessor.rms.mean,
         'optim': optimizer.state_dict()},
-        f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
+        f'models/{args.env_name}_{args.run_name}_MPnetv1_steps={step}.pt')
 
 
 def main(args):
