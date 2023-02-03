@@ -53,14 +53,6 @@ class ImgObsWrapper(gym.core.ObservationWrapper):
     def observation(self, obs):
         return obs['image']
 
-
-def basic_partial_wrapper(env):
-    """Use this as a wrapper only for cartpole etc."""
-    env = RGBImgPartialObsWrapper(env)
-    env = ImgObsWrapper(env)
-    env = ReturnWrapper(env)
-    # env = TransformReward(env, lambda r: np.clip(r, -1, 1))
-    return env
 def basic_birdview_wrapper(env):
     """Use this as a wrapper only for cartpole etc."""
     # env = RGBImgPartialObsWrapper(env)

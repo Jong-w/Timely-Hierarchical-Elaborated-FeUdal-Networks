@@ -15,19 +15,21 @@ class MPnets(nn.Module):
                  hidden_dim_supervisor,
                  hidden_dim_worker,
                  n_actions,
-                 time_horizon=10,
+                 time_horizon_manager=20,
+                 time_horizon_supervisor=5,
                  dilation=10,
                  device='cuda',
                  mlp=True,
                  args=None,
-                 partial=1):
+                 whole=1):
         """naming convention inside the MPnets is selected
         to match paper variable naming convention.
         """
 
         super().__init__()
         self.b = num_workers
-        self.c = time_horizon
+        self.c_m = time_horizon_manager
+        self.c_s = time_horizon_supervisor
         self.d = hidden_dim_manager
         self.n = hidden_dim_supervisor
         self.k = hidden_dim_worker
@@ -35,11 +37,11 @@ class MPnets(nn.Module):
         self.n_actions = n_actions
         self.device = device
 
-        self.preprocessor = Preprocessor(input_dim, device, mlp, partial)
+        self.preprocessor = Preprocessor(input_dim, device, mlp, whole)
         self.percept = Perception(input_dim, self.d, mlp)
-        self.manager = Manager(self.c, self.d, self.r, args, device)
-        self.supervisor = Supervisor(self.c, self.d, self.n, self.r, args, device)
-        self.worker = Worker(self.b, self.c, self.d, self.n, self.k, n_actions, device)
+        self.manager = Manager(self.c_m, self.c_s,  self.d, self.r, args, device)
+        self.supervisor = Supervisor(self.c_m, self.c_s, self.d, self.n, self.r, args, device)
+        self.worker = Worker(self.b, self.c_m, self.c_s, self.d, self.n, self.k, n_actions, device)
 
         self.hidden_m = init_hidden(args.num_workers, self.r * self.d,
                                     device=device, grad=True)
@@ -80,11 +82,11 @@ class MPnets(nn.Module):
             z, goal_m, self.hidden_s, mask)
 
         # Ensure that we only have a list of size 2*c + 1, and we use FiLo
-        if len(goals_m) > (2 * self.c + 1):
+        if len(goals_m) > (2 * self.c_m + 1):
             goals_m.pop(0)
             states_m.pop(0)
 
-        if len(goals_s) > (2 * self.c + 1):
+        if len(goals_s) > (2 * self.c_s + 1):
             goals_s.pop(0)
             states_s.pop(0)
 
@@ -97,7 +99,7 @@ class MPnets(nn.Module):
         # The manager is ahead at least c steps, so we feed
         # only the first c+1 states_m to worker
         action_dist, hidden_w, value_w = self.worker(
-            z, goals_s[:self.c + 1], self.hidden_w, mask)
+            z, goals_s[:self.c_s + 1], self.hidden_w, mask)
 
         if save:
             # Optional, dont do this for the next_v
@@ -125,19 +127,19 @@ class MPnets(nn.Module):
     def init_obj(self):
         template_m = torch.zeros(self.b, self.d)
         template_s = torch.zeros(self.b, self.n)
-        goals_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c+1)]
-        states_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c+1)]
-        goals_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c + 1)]
-        states_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c + 1)]
-        masks = [torch.ones(self.b, 1).to(self.device) for _ in range(2*self.c+1)]
+        goals_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c_m+1)]
+        states_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c_m+1)]
+        goals_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c_s + 1)]
+        states_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c_s + 1)]
+        masks = [torch.ones(self.b, 1).to(self.device) for _ in range(2*self.c_m+1)]
         return goals_m, states_m, goals_s, states_s,  masks
 
 class Perception(nn.Module):
-    def __init__(self, input_dim, d, mlp=False, partial=1):
+    def __init__(self, input_dim, d, mlp=False, whole=1):
         super().__init__()
 
-        if partial:
-            input_dim = (56, 56, 3)
+        if whole:
+            input_dim = (152, 152, 3)
             if mlp:
                 self.percept = nn.Sequential(
                     nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
@@ -146,12 +148,12 @@ class Perception(nn.Module):
                     nn.ReLU())
             else:
                 self.percept = nn.Sequential(
-                    nn.Conv2d(3, 16, kernel_size=5, stride=3),
+                    nn.Conv2d(3, 16, kernel_size=7, stride=5),
                     nn.ReLU(),
                     nn.Conv2d(16, 32, kernel_size=3, stride=3),
                     nn.ReLU(),
                     nn.modules.Flatten(),
-                    nn.Linear(32 * 6 * 6, d),
+                    nn.Linear(32 * 10 * 10, d),
                     nn.ReLU())
         else:
             if mlp:
@@ -174,9 +176,10 @@ class Perception(nn.Module):
         return self.percept(x)
 
 class Manager(nn.Module):
-    def __init__(self, c, d, r, args, device):
+    def __init__(self, c_m, c_s, d, r, args, device):
         super().__init__()
-        self.c = c  # Time Horizon
+        self.c_m = c_m  # Time Horizon
+        self.c_s = c_s
         self.d = d  # Hidden dimension size
         self.r = r  # Dilation level
         self.eps = args.eps
@@ -221,20 +224,22 @@ class Manager(nn.Module):
                         the difference state s_{t+c} - s_{t},
                         the goal embedding at timestep t g_t(theta).
         """
-        t = self.c
-        mask = torch.stack(masks[t: t + self.c - 1]).prod(dim=0)
+        t_m = self.c_m
+        t_s = self.c_s
+        mask = torch.stack(masks[t_m: t_m + self.c_m - 1]).prod(dim=0)
 
-        goals_m_ = torch.cat([goals_m[t], goals_m[t]], dim=1)
+        goals_m_ = torch.cat([goals_m[t_m], goals_m[t_m]], dim=1)
 
-        cosine_dist = d_cos(goals_s[t] - goals_s[t - self.c], goals_m_)
+        cosine_dist = d_cos(goals_s[t_s] - goals_s[t_s - self.c_s], goals_m_)
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
 
         return cosine_dist
 
 class Supervisor(nn.Module):
-    def __init__(self, c, d, n, r, args, device, ):
+    def __init__(self, c_m, c_s, d, n, r, args, device, ):
         super().__init__()
-        self.c = c  # Time Horizon
+        self.c_m = c_m  # Time Horizon
+        self.c_s = c_s
         self.d = d  # Hidden dimension size
         self.r = r  # Dilation level
         self.eps = args.eps
@@ -282,17 +287,18 @@ class Supervisor(nn.Module):
                         the difference state s_{t+c} - s_{t},
                         the goal embedding at timestep t g_t(theta).
         """
-        t = self.c
-        mask = torch.stack(masks[t: t + self.c - 1]).prod(dim=0)
-        cosine_dist = d_cos(states_s[t + self.c] - states_s[t], goals_s[t])
+        t_s = self.c_s
+        mask = torch.stack(masks[t_s: t_s + self.c_s - 1]).prod(dim=0)
+        cosine_dist = d_cos(states_s[t_s + self.c_s] - states_s[t_s], goals_s[t_s])
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
         return cosine_dist
 
 class Worker(nn.Module):
-    def __init__(self, b, c, d, n, k, num_actions, device):
+    def __init__(self, b, c_m, c_s, d, n, k, num_actions, device):
         super().__init__()
         self.b = b
-        self.c = c
+        self.c_m = c_m
+        self.c_s = c_s
         self.k = k
         self.n = n
         self.num_actions = num_actions
@@ -359,18 +365,18 @@ class Worker(nn.Module):
         Returns:
             Intrinsic reward for the Worker
         """
-        t = self.c
+        t_s = self.c_s
         r_i = torch.zeros(self.b, 1).to(self.device)
         mask = torch.ones(self.b, 1).to(self.device)
 
-        for i in range(1, self.c + 1):
-            r_i_t = d_cos(states_s[t] - states_s[t - i], goals_s[t - i]).unsqueeze(-1)
+        for i in range(1, self.c_s + 1):
+            r_i_t = d_cos(states_s[t_s] - states_s[t_s - i], goals_s[t_s - i]).unsqueeze(-1)
             r_i += (mask * r_i_t)
 
-            mask = mask * masks[t - i]
+            mask = mask * masks[t_s - i]
 
         r_i = r_i.detach()
-        return r_i / self.c
+        return r_i / self.c_s
 
 def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
     """Calculate the loss for Worker and Manager,
@@ -422,16 +428,18 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
 
     # Update the critics into the right direction
     value_w_loss = 0.5 * advantage_w.pow(2).mean()
+    value_s_loss = 0.5 * advantage_s.pow(2).mean()
     value_m_loss = 0.5 * advantage_m.pow(2).mean()
 
     entropy = entropy.mean()
 
-    loss = - loss_worker - ((loss_manager + loss_supervisor)/2) + value_w_loss + value_m_loss - args.entropy_coef * entropy
+    loss = ((- loss_worker - loss_manager - loss_supervisor + value_w_loss + value_s_loss + value_m_loss)/6) * 4 - args.entropy_coef * entropy
 
     return loss, {'loss/total_mp_loss': loss.item(),
                   'loss/worker': loss_worker.item(),
                   'loss/manager': loss_manager.item(),
                   'loss/value_worker': value_w_loss.item(),
+                  'loss/value_supervisor': value_s_loss.item(),
                   'loss/value_manager': value_m_loss.item(),
                   'worker/entropy': entropy.item(),
                   'worker/advantage': advantage_w.mean().item(),
