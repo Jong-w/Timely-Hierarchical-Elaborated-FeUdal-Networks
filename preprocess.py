@@ -5,7 +5,7 @@ import torch
 class Preprocessor:
     def __init__(self, shape, device='cpu', mlp=False, partial=1):
         if partial:
-            shape = (152, 152, 3)
+            shape = (96, 48, 3)
         if mlp:
             self.shape = (shape[-1] * shape[0] * shape[1], ) #shape[-1]
         else:

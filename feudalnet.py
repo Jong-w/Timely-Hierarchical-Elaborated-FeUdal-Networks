@@ -19,7 +19,7 @@ class FeudalNetwork(nn.Module):
                  device='cuda',
                  mlp=True,
                  args=None,
-                 partial=1):
+                 whole=1):
         """naming convention inside the FeudalNetwork is selected
         to match paper variable naming convention.
         """
@@ -33,7 +33,7 @@ class FeudalNetwork(nn.Module):
         self.n_actions = n_actions
         self.device = device
 
-        self.preprocessor = Preprocessor(input_dim, device, mlp, partial)
+        self.preprocessor = Preprocessor(input_dim, device, mlp, whole)
         self.percept = Perception(input_dim, self.d, mlp)
         self.manager = Manager(self.c, self.d, self.r, args, device)
         self.worker = Worker(self.b, self.c, self.d, self.k, n_actions, device)
@@ -113,11 +113,11 @@ class FeudalNetwork(nn.Module):
 
 
 class Perception(nn.Module):
-    def __init__(self, input_dim, d, mlp=False, partial=1):
+    def __init__(self, input_dim, d, mlp=False, whole=1):
         super().__init__()
 
-        if partial:
-            input_dim = (56, 56, 3)
+        if whole:
+            input_dim = (152, 152, 3)
             if mlp:
                 self.percept = nn.Sequential(
                     nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
@@ -126,12 +126,12 @@ class Perception(nn.Module):
                     nn.ReLU())
             else:
                 self.percept = nn.Sequential(
-                    nn.Conv2d(3, 16, kernel_size=5, stride=3),
+                    nn.Conv2d(3, 16, kernel_size=3, stride=3),
                     nn.ReLU(),
-                    nn.Conv2d(16, 32, kernel_size=3, stride=3),
+                    nn.Conv2d(16, 32, kernel_size=4, stride=4),
                     nn.ReLU(),
                     nn.modules.Flatten(),
-                    nn.Linear(32 * 6 * 6, d),
+                    nn.Linear(32 * 8 * 4, d),
                     nn.ReLU())
         else:
             if mlp:
@@ -152,7 +152,6 @@ class Perception(nn.Module):
 
     def forward(self, x):
         return self.percept(x)
-
 
 class Manager(nn.Module):
     def __init__(self, c, d, r, args, device):
@@ -207,6 +206,7 @@ class Manager(nn.Module):
         cosine_dist = d_cos(states[t + self.c] - states[t], goals[t])
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
         return cosine_dist
+
 
 
 class Worker(nn.Module):

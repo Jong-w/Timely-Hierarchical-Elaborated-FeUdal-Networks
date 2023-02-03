@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=0.0005,
                     help='learning rate')
-parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
+parser.add_argument('--env-name', type=str, default='MiniGrid-RedBlueDoors-6x6-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
@@ -25,10 +25,10 @@ parser.add_argument('--grad-clip', type=float, default=5.,
                     help='Gradient clipping (recommended).')
 parser.add_argument('--entropy-coef', type=float, default=0.01,
                     help='Entropy coefficient to encourage exploration.')
-parser.add_argument('--mlp', type=int, default=1,
+parser.add_argument('--mlp', type=int, default=0,
                     help='toggle to feedforward ML architecture')
-parser.add_argument('--partial', type=int, default=1,
-                    help='use partial information of the env')
+parser.add_argument('--whole', type=int, default=1,
+                    help='use whole information of the env')
 
 # SPECIFIC FEUDALNET PARAMETERS
 parser.add_argument('--time-horizon', type=int, default=10,
@@ -73,7 +73,7 @@ def experiment(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-    envs = make_envs(args.env_name, args.num_workers, args.seed, args.partial)
+    envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
     feudalnet = FeudalNetwork(
         num_workers=args.num_workers,
         input_dim=(7, 7, 3), #envs.observation_space.shape
@@ -85,7 +85,7 @@ def experiment(args):
         device=device,
         mlp=args.mlp,
         args=args,
-        partial=args.partial)
+        whole=args.whole)
 
     optimizer = torch.optim.RMSprop(feudalnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)

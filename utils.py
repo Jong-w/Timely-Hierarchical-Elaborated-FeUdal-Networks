@@ -127,6 +127,6 @@ def weight_init(layer):
 
 if __name__=="__main__":
     wrapper_fn = basic_birdview_wrapper
-    env = gym.vector.make('MiniGrid-FourRooms-v0', wrappers=wrapper_fn)
+    env = gym.vector.make('MiniGrid-RedBlueDoors-6x6-v0', wrappers=wrapper_fn)
     x = env.reset()
     cv2.imwrite('one_fig.png', x.reshape((152, 152, 3)))
