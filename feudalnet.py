@@ -17,7 +17,7 @@ class FeudalNetwork(nn.Module):
                  time_horizon=10,
                  dilation=10,
                  device='cuda',
-                 mlp=True,
+                 mlp=False,
                  args=None,
                  whole=1):
         """naming convention inside the FeudalNetwork is selected
@@ -117,7 +117,7 @@ class Perception(nn.Module):
         super().__init__()
 
         if whole:
-            input_dim = (104, 104, 3)
+            input_dim = (200, 200, 3)
             if mlp:
                 self.percept = nn.Sequential(
                     nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
@@ -126,12 +126,12 @@ class Perception(nn.Module):
                     nn.ReLU())
             else:
                 self.percept = nn.Sequential(
-                    nn.Conv2d(3, 16, kernel_size=4, stride=4),
+                    nn.Conv2d(3, 16, kernel_size=8, stride=4),
                     nn.ReLU(),
-                    nn.Conv2d(16, 32, kernel_size=4, stride=2),
+                    nn.Conv2d(16, 32, kernel_size=9, stride=4),
                     nn.ReLU(),
                     nn.modules.Flatten(),
-                    nn.Linear(32 * 12 * 12, d),
+                    nn.Linear(32 * 11 * 11, d),
                     nn.ReLU())
         else:
             if mlp:
@@ -330,7 +330,7 @@ def feudal_loss(storage, next_v_m, next_v_w, args):
              'logp', 'entropy', 's_goal_cos'])
 
     # Calculate advantages, size B x T
-    advantage_w = ret_w + args.alpha * rewards_intrinsic - value_w
+    advantage_w = ret_w - value_w + args.alpha * rewards_intrinsic
     advantage_m = ret_m - value_m
 
     loss_worker = (logps * advantage_w.detach()).mean()
@@ -342,8 +342,7 @@ def feudal_loss(storage, next_v_m, next_v_w, args):
 
     entropy = entropy.mean()
 
-    loss = - loss_worker - loss_manager + value_w_loss + value_m_loss \
-        - args.entropy_coef * entropy
+    loss = (value_w_loss - loss_worker) + (value_m_loss - loss_manager) - args.entropy_coef * entropy
 
     return loss, {'loss/total_fun_loss': loss.item(),
                   'loss/worker': loss_worker.item(),
