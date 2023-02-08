@@ -17,7 +17,8 @@ class MPnets(nn.Module):
                  n_actions,
                  time_horizon_manager=20,
                  time_horizon_supervisor=5,
-                 dilation=10,
+                 dilation_manager=20,
+                 dilation_supervisor=10,
                  device='cuda',
                  mlp=True,
                  args=None,
@@ -33,19 +34,20 @@ class MPnets(nn.Module):
         self.d = hidden_dim_manager
         self.n = hidden_dim_supervisor
         self.k = hidden_dim_worker
-        self.r = dilation
+        self.r_m = dilation_manager
+        self.r_s = dilation_supervisor
         self.n_actions = n_actions
         self.device = device
 
-        self.preprocessor = Preprocessor(input_dim, device, mlp, whole)
+        self.preprocessor = Preprocessor(input_dim, device, mlp)
         self.percept = Perception(input_dim, self.d, mlp)
-        self.manager = Manager(self.c_m, self.c_s,  self.d, self.r, args, device)
-        self.supervisor = Supervisor(self.c_m, self.c_s, self.d, self.n, self.r, args, device)
+        self.manager = Manager(self.c_m, self.c_s,  self.d, self.r_m , args, device)
+        self.supervisor = Supervisor(self.c_m, self.c_s, self.d, self.n, self.r_s, args, device)
         self.worker = Worker(self.b, self.c_m, self.c_s, self.d, self.n, self.k, n_actions, device)
 
-        self.hidden_m = init_hidden(args.num_workers, self.r * self.d,
+        self.hidden_m = init_hidden(args.num_workers, self.r_m  * self.d,
                                     device=device, grad=True)
-        self.hidden_s = init_hidden(args.num_workers, self.r * self.n,
+        self.hidden_s = init_hidden(args.num_workers, self.r_s * self.n,
                                     device=device, grad=True)
         self.hidden_w = init_hidden(args.num_workers, self.k * n_actions,
                                     device=device, grad=True)
@@ -135,53 +137,34 @@ class MPnets(nn.Module):
         return goals_m, states_m, goals_s, states_s,  masks
 
 class Perception(nn.Module):
-    def __init__(self, input_dim, d, mlp=False, whole=1):
+    def __init__(self, input_dim, d, mlp=False):
         super().__init__()
-
-        if whole:
-            input_dim = (104, 104, 3)
-            if mlp:
-                self.percept = nn.Sequential(
-                    nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
-                    nn.ReLU(),
-                    nn.Linear(64, d),
-                    nn.ReLU())
-            else:
-                self.percept = nn.Sequential(
-                    nn.Conv2d(3, 16, kernel_size=5, stride=3),
-                    nn.ReLU(),
-                    nn.Conv2d(16, 32, kernel_size=7, stride=3),
-                    nn.ReLU(),
-                    nn.modules.Flatten(),
-                    nn.Linear(32 * 10 * 10, d),
-                    nn.ReLU())
+        if mlp:
+            self.percept = nn.Sequential(
+                nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
+                nn.ReLU(),
+                nn.Linear(64, d),
+                nn.ReLU())
         else:
-            if mlp:
-                self.percept = nn.Sequential(
-                    nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
-                    nn.ReLU(),
-                    nn.Linear(64, d),
-                    nn.ReLU())
-            else:
-                self.percept = nn.Sequential(
-                    nn.Conv2d(3, 16, kernel_size=3, stride=1),
-                    nn.ReLU(),
-                    nn.Conv2d(16, 32, kernel_size=3, stride=1),
-                    nn.ReLU(),
-                    nn.modules.Flatten(),
-                    nn.Linear(32 * 4 * 4, d),
-                    nn.ReLU())
+            self.percept = nn.Sequential(
+                nn.Conv2d(3, 16, kernel_size=4, stride=4),
+                nn.ReLU(),
+                nn.Conv2d(16, 32, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.modules.Flatten(),
+                nn.Linear(32 * 14 * 14, d),
+                nn.ReLU())
 
     def forward(self, x):
         return self.percept(x)
 
 class Manager(nn.Module):
-    def __init__(self, c_m, c_s, d, r, args, device):
+    def __init__(self, c_m, c_s, d, r_m , args, device):
         super().__init__()
         self.c_m = c_m  # Time Horizon
         self.c_s = c_s
         self.d = d  # Hidden dimension size
-        self.r = r  # Dilation level
+        self.r = r_m  # Dilation level
         self.eps = args.eps
         self.device = device
 
@@ -236,12 +219,12 @@ class Manager(nn.Module):
         return cosine_dist
 
 class Supervisor(nn.Module):
-    def __init__(self, c_m, c_s, d, n, r, args, device, ):
+    def __init__(self, c_m, c_s, d, n, r_s, args, device, ):
         super().__init__()
         self.c_m = c_m  # Time Horizon
         self.c_s = c_s
         self.d = d  # Hidden dimension size
-        self.r = r  # Dilation level
+        self.r = r_s  # Dilation level
         self.eps = args.eps
         self.device = device
         self.n = n
@@ -255,7 +238,8 @@ class Supervisor(nn.Module):
         state = self.Sspace(z).relu()
         manager_goal = self.phi(goal_m)
         hidden = (mask * hidden[0], mask * hidden[1])
-        goal_hat, hidden = self.Srnn(manager_goal + state, hidden)
+        goal_, hidden = self.Srnn(state, hidden)
+        goal_hat = manager_goal + goal_
         value_est = self.critic(goal_hat)
 
         # From goal_hat to goal
@@ -437,6 +421,7 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
 
     return loss, {'loss/total_mp_loss': loss.item(),
                   'loss/worker': loss_worker.item(),
+                  'loss/supervisor': loss_supervisor.item(),
                   'loss/manager': loss_manager.item(),
                   'loss/value_worker': value_w_loss.item(),
                   'loss/value_supervisor': value_s_loss.item(),

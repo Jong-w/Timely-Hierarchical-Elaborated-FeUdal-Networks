@@ -3,7 +3,7 @@ import torch
 import cv2
 
 from utils import make_envs, take_action, init_obj
-from meltingpotnetv2 import MPnets, mp_loss
+from meltingpotnet_changemanager import MPnets, mp_loss
 from storage import Storage
 from logger import Logger
 
@@ -32,27 +32,29 @@ parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon_manager', type=int, default=20,
+parser.add_argument('--time-horizon_manager', type=int, default=10,
                     help='Manager horizon (c_m)')
 parser.add_argument('--time-horizon_supervisor', type=int, default=5,
                     help='Manager horizon (c_s)')
-parser.add_argument('--hidden-dim-manager', type=int, default=100,
+parser.add_argument('--hidden-dim-manager', type=int, default=120,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-supervisor', type=int, default=200,
+parser.add_argument('--hidden-dim-supervisor', type=int, default=60,
                     help='Hidden dim (n)')
 parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
 parser.add_argument('--gamma-w', type=float, default=0.9,
                     help="discount factor worker")
-parser.add_argument('--gamma-s', type=float, default=0.99,
+parser.add_argument('--gamma-s', type=float, default=0.95,
                     help="discount factor supervisor")
-parser.add_argument('--gamma-m', type=float, default=0.999,
+parser.add_argument('--gamma-m', type=float, default=0.99,
                     help="discount factor manager")
 parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
 parser.add_argument('--eps', type=float, default=int(1e-5),
                     help='Random Gausian goal for exploration')
-parser.add_argument('--dilation', type=int, default=10,
+parser.add_argument('--dilation_manager', type=int, default=10,
+                    help='Dilation parameter for manager LSTM.')
+parser.add_argument('--dilation_supervisor', type=int, default=5,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
@@ -83,21 +85,23 @@ def experiment(args):
     envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
     MPnet = MPnets(
         num_workers=args.num_workers,
-        input_dim=(7, 7, 3), #envs.observation_space.shape
+        input_dim=envs.observation_space.shape,
         hidden_dim_manager=args.hidden_dim_manager,
         hidden_dim_supervisor=args.hidden_dim_supervisor,
         hidden_dim_worker=args.hidden_dim_worker,
         n_actions=envs.single_action_space.n,
         time_horizon_manager=args.time_horizon_manager,
         time_horizon_supervisor=args.time_horizon_supervisor,
-        dilation=args.dilation,
+        dilation_manager=args.dilation_manager,
+        dilation_supervisor=args.dilation_supervisor,
         device=device,
         mlp=args.mlp,
         args=args,
         whole=args.whole)
 
-    optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr,
-                                    alpha=0.99, eps=1e-5)
+    #optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr, alpha=0.99, eps=1e-5)
+    optimizer = torch.optim.Adam(MPnet.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-05)
+
     goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
 
     x = envs.reset()

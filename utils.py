@@ -129,4 +129,4 @@ if __name__=="__main__":
     wrapper_fn = basic_birdview_wrapper
     env = gym.vector.make('MiniGrid-FourRooms-v0', wrappers=basic_birdview_wrapper)
     x = env.reset()
-    cv2.imwrite('one_fig.png', x.reshape((200, 200, 3)))
+    cv2.imwrite('one_fig.png', x.reshape((120, 120, 3)))

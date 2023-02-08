@@ -33,7 +33,7 @@ parser.add_argument('--whole', type=int, default=1,
 # SPECIFIC FEUDALNET PARAMETERS
 parser.add_argument('--time-horizon', type=int, default=10,
                     help='Manager horizon (c)')
-parser.add_argument('--hidden-dim-manager', type=int, default=200,
+parser.add_argument('--hidden-dim-manager', type=int, default=120,
                     help='Hidden dim (d)')
 parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
@@ -41,7 +41,7 @@ parser.add_argument('--gamma-w', type=float, default=0.9,
                     help="discount factor worker")
 parser.add_argument('--gamma-m', type=float, default=0.99,
                     help="discount factor manager")
-parser.add_argument('--alpha', type=float, default=0.7,
+parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
 parser.add_argument('--eps', type=float, default=int(1e-5),
                     help='Random Gausian goal for exploration')
@@ -76,7 +76,7 @@ def experiment(args):
     envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
     feudalnet = FeudalNetwork(
         num_workers=args.num_workers,
-        input_dim=(7, 7, 3), #envs.observation_space.shape
+        input_dim=envs.observation_space.shape,
         hidden_dim_manager=args.hidden_dim_manager,
         hidden_dim_worker=args.hidden_dim_worker,
         n_actions=envs.single_action_space.n,
@@ -89,6 +89,7 @@ def experiment(args):
 
     optimizer = torch.optim.RMSprop(feudalnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)
+
     goals, states, masks = feudalnet.init_obj()
 
     x = envs.reset()

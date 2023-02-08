@@ -3,7 +3,7 @@ import torch
 import cv2
 
 from utils import make_envs, take_action, init_obj
-from meltingpotnetv1 import MPnets, mp_loss
+from meltingpotnet import MPnets, mp_loss
 from storage import Storage
 from logger import Logger
 
@@ -18,7 +18,7 @@ parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
 parser.add_argument('--num-steps', type=int, default=400,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e8),
+parser.add_argument('--max-steps', type=int, default=int(1e8), #int(1e8)
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -34,25 +34,27 @@ parser.add_argument('--whole', type=int, default=1,
 # SPECIFIC FEUDALNET PARAMETERS
 parser.add_argument('--time-horizon_manager', type=int, default=20,
                     help='Manager horizon (c_m)')
-parser.add_argument('--time-horizon_supervisor', type=int, default=5,
+parser.add_argument('--time-horizon_supervisor', type=int, default=10,
                     help='Manager horizon (c_s)')
-parser.add_argument('--hidden-dim-manager', type=int, default=32,
+parser.add_argument('--hidden-dim-manager', type=int, default=52,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-supervisor', type=int, default=64,
+parser.add_argument('--hidden-dim-supervisor', type=int, default=104,
                     help='Hidden dim (n)')
 parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
-parser.add_argument('--gamma-w', type=float, default=0.99,
+parser.add_argument('--gamma-w', type=float, default=0.9,
                     help="discount factor worker")
-parser.add_argument('--gamma-s', type=float, default=0.999,
+parser.add_argument('--gamma-s', type=float, default=0.95,
                     help="discount factor supervisor")
-parser.add_argument('--gamma-m', type=float, default=0.9999,
+parser.add_argument('--gamma-m', type=float, default=0.99,
                     help="discount factor manager")
 parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
 parser.add_argument('--eps', type=float, default=int(1e-5),
                     help='Random Gausian goal for exploration')
-parser.add_argument('--dilation', type=int, default=10,
+parser.add_argument('--dilation_manager', type=int, default=20,
+                    help='Dilation parameter for manager LSTM.')
+parser.add_argument('--dilation_supervisor', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
@@ -70,7 +72,7 @@ def experiment(args):
                                    int(args.max_steps) // 10).numpy())
 
     # logger = Logger(args.run_name, args)
-    logger = Logger(args.env_name, 'MPnetsv1', args)
+    logger = Logger(args.env_name, 'MPnetsv2', args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
     device = torch.device("cuda" if cuda_is_available else "cpu")
     args.device = device
@@ -83,14 +85,15 @@ def experiment(args):
     envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
     MPnet = MPnets(
         num_workers=args.num_workers,
-        input_dim=(7, 7, 3), #envs.observation_space.shape
+        input_dim=envs.observation_space.shape,
         hidden_dim_manager=args.hidden_dim_manager,
         hidden_dim_supervisor=args.hidden_dim_supervisor,
         hidden_dim_worker=args.hidden_dim_worker,
         n_actions=envs.single_action_space.n,
         time_horizon_manager=args.time_horizon_manager,
         time_horizon_supervisor=args.time_horizon_supervisor,
-        dilation=args.dilation,
+        dilation_manager=args.dilation_manager,
+        dilation_supervisor=args.dilation_supervisor,
         device=device,
         mlp=args.mlp,
         args=args,
@@ -162,7 +165,7 @@ def experiment(args):
                 'args': args,
                 'processor_mean': MPnet.preprocessor.rms.mean,
                 'optim': optimizer.state_dict()},
-                f'models/{args.env_name}_{args.run_name}_MPnetv1_steps={step}.pt')
+                f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
             save_steps.pop(0)
 
     envs.close()
@@ -171,7 +174,7 @@ def experiment(args):
         'args': args,
         'processor_mean': MPnet.preprocessor.rms.mean,
         'optim': optimizer.state_dict()},
-        f'models/{args.env_name}_{args.run_name}_MPnetv1_steps={step}.pt')
+        f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
 
 
 def main(args):

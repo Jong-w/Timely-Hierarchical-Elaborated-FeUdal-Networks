@@ -33,7 +33,7 @@ class FeudalNetwork(nn.Module):
         self.n_actions = n_actions
         self.device = device
 
-        self.preprocessor = Preprocessor(input_dim, device, mlp, whole)
+        self.preprocessor = Preprocessor(input_dim, device, mlp)
         self.percept = Perception(input_dim, self.d, mlp)
         self.manager = Manager(self.c, self.d, self.r, args, device)
         self.worker = Worker(self.b, self.c, self.d, self.k, n_actions, device)
@@ -113,42 +113,23 @@ class FeudalNetwork(nn.Module):
 
 
 class Perception(nn.Module):
-    def __init__(self, input_dim, d, mlp=False, whole=1):
+    def __init__(self, input_dim, d, mlp=False):
         super().__init__()
-
-        if whole:
-            input_dim = (200, 200, 3)
-            if mlp:
-                self.percept = nn.Sequential(
-                    nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
-                    nn.ReLU(),
-                    nn.Linear(64, d),
-                    nn.ReLU())
-            else:
-                self.percept = nn.Sequential(
-                    nn.Conv2d(3, 16, kernel_size=8, stride=4),
-                    nn.ReLU(),
-                    nn.Conv2d(16, 32, kernel_size=9, stride=4),
-                    nn.ReLU(),
-                    nn.modules.Flatten(),
-                    nn.Linear(32 * 11 * 11, d),
-                    nn.ReLU())
+        if mlp:
+            self.percept = nn.Sequential(
+                nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
+                nn.ReLU(),
+                nn.Linear(64, d),
+                nn.ReLU())
         else:
-            if mlp:
-                self.percept = nn.Sequential(
-                    nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
-                    nn.ReLU(),
-                    nn.Linear(64, d),
-                    nn.ReLU())
-            else:
-                self.percept = nn.Sequential(
-                    nn.Conv2d(3, 16, kernel_size=3, stride=1),
-                    nn.ReLU(),
-                    nn.Conv2d(16, 32, kernel_size=3, stride=1),
-                    nn.ReLU(),
-                    nn.modules.Flatten(),
-                    nn.Linear(32 * 4 * 4, d),
-                    nn.ReLU())
+            self.percept = nn.Sequential(
+                nn.Conv2d(3, 16, kernel_size=4, stride=4),
+                nn.ReLU(),
+                nn.Conv2d(16, 32, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.modules.Flatten(),
+                nn.Linear(32 * 14 * 14, d),
+                nn.ReLU())
 
     def forward(self, x):
         return self.percept(x)
