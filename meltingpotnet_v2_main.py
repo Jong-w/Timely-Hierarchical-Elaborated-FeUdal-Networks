@@ -3,7 +3,7 @@ import torch
 import cv2
 
 from utils import make_envs, take_action, init_obj
-from meltingpotnet_changemanager import MPnets, mp_loss
+from meltingpotnet_v2 import MPnets, mp_loss
 from storage import Storage
 from logger import Logger
 
@@ -48,9 +48,11 @@ parser.add_argument('--gamma-s', type=float, default=0.95,
                     help="discount factor supervisor")
 parser.add_argument('--gamma-m', type=float, default=0.99,
                     help="discount factor manager")
-parser.add_argument('--alpha', type=float, default=0.5,
+parser.add_argument('--alpha', type=float, default=0.25,
                     help='Intrinsic reward coefficient in [0, 1]')
-parser.add_argument('--eps', type=float, default=int(1e-5),
+parser.add_argument('--beta', type=float, default=0.5,
+                    help='value_loss coefficient in [0, 1]')
+parser.add_argument('--eps', type=float, default=int(1e-8),
                     help='Random Gausian goal for exploration')
 parser.add_argument('--dilation_manager', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
@@ -60,7 +62,7 @@ parser.add_argument('--dilation_supervisor', type=int, default=5,
 # EXPERIMENT RELATED PARAMS
 parser.add_argument('--run-name', type=str, default='baseline',
                     help='run name for the logger.')
-parser.add_argument('--seed', type=int, default=0,
+parser.add_argument('--seed', type=int, default=1004,
                     help='reproducibility seed.')
 
 args = parser.parse_args()
@@ -72,7 +74,7 @@ def experiment(args):
                                    int(args.max_steps) // 10).numpy())
 
     # logger = Logger(args.run_name, args)
-    logger = Logger(args.env_name, 'MPnetsv2', args)
+    logger = Logger(args.env_name, 'MPnetsv2_64', args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
     device = torch.device("cuda" if cuda_is_available else "cpu")
     args.device = device
@@ -100,7 +102,7 @@ def experiment(args):
         whole=args.whole)
 
     #optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr, alpha=0.99, eps=1e-5)
-    optimizer = torch.optim.Adam(MPnet.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-05)
+    optimizer = torch.optim.Adam(MPnet.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-08)
 
     goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
 
@@ -132,14 +134,15 @@ def experiment(args):
 
             storage.add({
                 'r': torch.FloatTensor(reward).unsqueeze(-1).to(device),
-                'r_i': MPnet.intrinsic_reward(states_s, goals_s, masks),
+                'r_i': MPnet.intrinsic_reward(states_m, states_s, goals_m, goals_s, masks),
                 'v_w': value_w,
                 'v_s': value_s,
                 'v_m': value_m,
                 'logp': logp.unsqueeze(-1),
                 'entropy': entropy.unsqueeze(-1),
                 's_goal_cos': MPnet.state_goal_cosine(states_s, goals_s, masks),
-                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
+                #'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
+                'g_goal_cos': MPnet.goal_goal_cosine(states_m, goals_m, masks),
                 'm': mask
             })
 

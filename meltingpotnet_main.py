@@ -32,13 +32,13 @@ parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon_manager', type=int, default=20,
+parser.add_argument('--time-horizon_manager', type=int, default=10,
                     help='Manager horizon (c_m)')
 parser.add_argument('--time-horizon_supervisor', type=int, default=10,
                     help='Manager horizon (c_s)')
-parser.add_argument('--hidden-dim-manager', type=int, default=52,
+parser.add_argument('--hidden-dim-manager', type=int, default=120,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-supervisor', type=int, default=104,
+parser.add_argument('--hidden-dim-supervisor', type=int, default=60,
                     help='Hidden dim (n)')
 parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
@@ -50,9 +50,9 @@ parser.add_argument('--gamma-m', type=float, default=0.99,
                     help="discount factor manager")
 parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
-parser.add_argument('--eps', type=float, default=int(1e-5),
+parser.add_argument('--eps', type=float, default=int(1e-8),
                     help='Random Gausian goal for exploration')
-parser.add_argument('--dilation_manager', type=int, default=20,
+parser.add_argument('--dilation_manager', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 parser.add_argument('--dilation_supervisor', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
@@ -72,7 +72,7 @@ def experiment(args):
                                    int(args.max_steps) // 10).numpy())
 
     # logger = Logger(args.run_name, args)
-    logger = Logger(args.env_name, 'MPnetsv2', args)
+    logger = Logger(args.env_name, 'MPnets_64', args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
     device = torch.device("cuda" if cuda_is_available else "cpu")
     args.device = device
@@ -99,8 +99,9 @@ def experiment(args):
         args=args,
         whole=args.whole)
 
-    optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr,
-                                    alpha=0.99, eps=1e-5)
+    #optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr, alpha=0.99, eps=1e-5)
+    optimizer = torch.optim.Adam(MPnet.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08)
+
     goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
 
     x = envs.reset()
@@ -138,7 +139,8 @@ def experiment(args):
                 'logp': logp.unsqueeze(-1),
                 'entropy': entropy.unsqueeze(-1),
                 's_goal_cos': MPnet.state_goal_cosine(states_s, goals_s, masks),
-                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
+                #'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
+                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, states_m, masks),
                 'm': mask
             })
 

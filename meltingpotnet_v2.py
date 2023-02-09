@@ -81,7 +81,7 @@ class MPnets(nn.Module):
             z, self.hidden_m, mask)
 
         goal_s, hidden_s, state_s, value_s = self.supervisor(
-            z, goal_m, self.hidden_s, mask)
+            z, self.hidden_s, mask)
 
         # Ensure that we only have a list of size 2*c + 1, and we use FiLo
         if len(goals_m) > (2 * self.c_m + 1):
@@ -101,7 +101,7 @@ class MPnets(nn.Module):
         # The manager is ahead at least c steps, so we feed
         # only the first c+1 states_m to worker
         action_dist, hidden_w, value_w = self.worker(
-            z, goals_s[:self.c_s + 1], self.hidden_w, mask)
+            z, goals_m[:self.c_m + 1] ,goals_s[:self.c_s + 1], self.hidden_w, mask)
 
         if save:
             # Optional, dont do this for the next_v
@@ -110,8 +110,8 @@ class MPnets(nn.Module):
 
         return action_dist, goals_m, states_m, value_m, goals_s, states_s, value_s, value_w
 
-    def intrinsic_reward(self, states_m, goals_m, masks):
-        return self.worker.intrinsic_reward(states_m, goals_m, masks)
+    def intrinsic_reward(self, states_m, states_s, goals_m, goals_s, mask):
+        return self.worker.intrinsic_reward(states_m, states_s, goals_m, goals_s, mask)
 
     def goal_goal_cosine(self, goals_m, goals_s,  masks):
         return self.manager.goal_goal_cosine(goals_m, goals_s,  masks)
@@ -133,7 +133,7 @@ class MPnets(nn.Module):
         states_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c_m+1)]
         goals_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c_s + 1)]
         states_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c_s + 1)]
-        masks = [torch.ones(self.b, 1).to(self.device) for _ in range(2*self.c_m+1)]
+        masks = [torch.ones(self.b, 1).to(self.device) for _ in range(2*self.c_s+1)]
         return goals_m, states_m, goals_s, states_s,  masks
 
 class Perception(nn.Module):
@@ -190,7 +190,7 @@ class Manager(nn.Module):
 
         return goal, hidden, state, value_est
 
-    def goal_goal_cosine(self, goals_m, goals_s,  masks):
+    def goal_goal_cosine(self, states_m, goals_m,  masks):
         """For the manager, we update using the cosine of:
             cos( S_{t+c} - S_{t}, G_{t} )
 
@@ -211,10 +211,12 @@ class Manager(nn.Module):
         t_s = self.c_s
         mask = torch.stack(masks[t_m: t_m + self.c_m - 1]).prod(dim=0)
 
-        goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
-        goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
+        #goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
+        #goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
+        #cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
 
-        cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
+        cosine_dist = d_cos(states_m[t_m + self.c_m] - states_m[t_m], goals_m[t_m])
+
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
 
         return cosine_dist
@@ -231,16 +233,14 @@ class Supervisor(nn.Module):
         self.n = n
 
         self.Sspace = nn.Linear(self.d, self.n)
-        self.phi = nn.Linear(self.d, self.n, bias=False)
         self.Srnn = DilatedLSTM(self.n, self.n, self.r)
         self.critic = nn.Linear(self.n, 1)
 
-    def forward(self, z, goal_m, hidden, mask):
+
+    def forward(self, z, hidden, mask):
         state = self.Sspace(z).relu()
-        manager_goal = self.phi(goal_m)
         hidden = (mask * hidden[0], mask * hidden[1])
-        goal_, hidden = self.Srnn(state, hidden)
-        goal_hat = manager_goal + goal_
+        goal_hat, hidden = self.Srnn(state, hidden)
         value_est = self.critic(goal_hat)
 
         # From goal_hat to goal
@@ -274,7 +274,12 @@ class Supervisor(nn.Module):
         """
         t_s = self.c_s
         mask = torch.stack(masks[t_s: t_s + self.c_s - 1]).prod(dim=0)
-        cosine_dist = d_cos(states_s[t_s + self.c_s] - states_s[t_s], goals_s[t_s])
+
+        state_s_t1 = torch.cat([states_s[t_s + self.c_s], states_s[t_s + self.c_s]], dim=1)
+        state_s_t2 = torch.cat([states_s[t_s], states_s[t_s]], dim=1)
+        goals_s_t = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
+
+        cosine_dist = d_cos(state_s_t1 - state_s_t2, goals_s_t)
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
         return cosine_dist
 
@@ -286,11 +291,13 @@ class Worker(nn.Module):
         self.c_s = c_s
         self.k = k
         self.n = n
+        self.d = d
         self.num_actions = num_actions
         self.device = device
 
         self.Wrnn = nn.LSTMCell(d, k * self.num_actions)
-        self.phi = nn.Linear(self.n, k, bias=False)
+        self.phi_m = nn.Linear(self.d, k, bias=False)
+        self.phi_s = nn.Linear(self.n, k, bias=False)
 
         self.critic = nn.Sequential(
             nn.Linear(k * num_actions, 50),
@@ -298,7 +305,7 @@ class Worker(nn.Module):
             nn.Linear(50, 1)
         )
 
-    def forward(self, z, goals_s, hidden, mask):
+    def forward(self, z, goals_m, goals_s, hidden, mask):
         """[summary]
 
         Args:
@@ -316,8 +323,11 @@ class Worker(nn.Module):
         hidden = (u, cx)
 
         # Detaching is vital, no end to end training
+        goals_m = torch.stack(goals_m).detach().sum(dim=0)
+        w_m = self.phi_m(goals_m)
         goals_s = torch.stack(goals_s).detach().sum(dim=0)
-        w = self.phi(goals_s)
+        w_s = self.phi_s(goals_s)
+        w = w_m + w_s
         value_est = self.critic(u)
 
         u = u.reshape(u.shape[0], self.k, self.num_actions)
@@ -325,7 +335,7 @@ class Worker(nn.Module):
 
         return a, hidden, value_est
 
-    def intrinsic_reward(self, states_s, goals_s, masks):
+    def intrinsic_reward(self, states_m, states_s, goals_m, goals_s, masks):
         """To calculate the intrinsic reward for the Worker (Eq. 8),
         we look at the horizon C, and for each horizon step i, we
         take current state s_t minus horizon state s_{t-i} and
@@ -351,17 +361,21 @@ class Worker(nn.Module):
             Intrinsic reward for the Worker
         """
         t_s = self.c_s
+        t_m = self.c_m
         r_i = torch.zeros(self.b, 1).to(self.device)
         mask = torch.ones(self.b, 1).to(self.device)
 
         for i in range(1, self.c_s + 1):
-            r_i_t = d_cos(states_s[t_s] - states_s[t_s - i], goals_s[t_s - i]).unsqueeze(-1)
+            r_i_t_s = d_cos(states_s[t_s] - states_s[t_s - i], goals_s[t_s - i]).unsqueeze(-1)
+            r_i_t_m = d_cos(states_m[t_m] - states_m[t_m - i], goals_m[t_m - i]).unsqueeze(-1)
+            r_i_t = (r_i_t_m / self.c_m) + (r_i_t_s / self.c_s)
             r_i += (mask * r_i_t)
+
 
             mask = mask * masks[t_s - i]
 
         r_i = r_i.detach()
-        return r_i / self.c_s
+        return r_i
 
 def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
     """Calculate the loss for Worker and Manager,
@@ -407,26 +421,26 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
     advantage_s = ret_s - value_s
     advantage_m = ret_m - value_m
 
-    loss_worker = (logps * advantage_w.detach()).mean()
-    loss_supervisor = (goal_goal_cosines * advantage_s.detach()).mean()
-    loss_manager = (state_goal_cosines * advantage_m.detach()).mean()
+    loss_worker = (logps * value_w).mean()
+    loss_supervisor = (goal_goal_cosines * value_s).mean()
+    loss_manager = (state_goal_cosines * value_m).mean()
 
     # Update the critics into the right direction
-    value_w_loss = 0.5 * advantage_w.pow(2).mean()
-    value_s_loss = 0.5 * advantage_s.pow(2).mean()
-    value_m_loss = 0.5 * advantage_m.pow(2).mean()
+    value_w_loss = args.beta * advantage_w.pow(2).mean()
+    value_s_loss = args.beta * advantage_s.pow(2).mean()
+    value_m_loss = args.beta * advantage_m.pow(2).mean()
 
     entropy = entropy.mean()
 
-    loss = ((- loss_worker - loss_manager - loss_supervisor + value_w_loss + value_s_loss + value_m_loss)/6) * 4 - args.entropy_coef * entropy
+    loss = (- loss_worker - loss_manager - loss_supervisor + value_w_loss + value_s_loss + value_m_loss) - args.entropy_coef * entropy
 
-    return loss, {'loss/total_mp_loss': loss.item(),
-                  'loss/worker': loss_worker.item(),
-                  'loss/supervisor': loss_supervisor.item(),
-                  'loss/manager': loss_manager.item(),
-                  'loss/value_worker': value_w_loss.item(),
-                  'loss/value_supervisor': value_s_loss.item(),
-                  'loss/value_manager': value_m_loss.item(),
+    return loss, {'loss/a. total_mp_loss': loss.item(),
+                  'loss/b. worker': loss_worker.item(),
+                  'loss/b. supervisor': loss_supervisor.item(),
+                  'loss/b. manager': loss_manager.item(),
+                  'loss/c. value_worker': value_w_loss.item(),
+                  'loss/c. value_supervisor': value_s_loss.item(),
+                  'loss/c. value_manager': value_m_loss.item(),
                   'worker/entropy': entropy.item(),
                   'worker/advantage': advantage_w.mean().item(),
                   'worker/intrinsic_reward': rewards_intrinsic.mean().item(),

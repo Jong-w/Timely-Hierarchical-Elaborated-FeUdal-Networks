@@ -133,7 +133,7 @@ class MPnets(nn.Module):
         states_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c_m+1)]
         goals_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c_s + 1)]
         states_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c_s + 1)]
-        masks = [torch.ones(self.b, 1).to(self.device) for _ in range(2*self.c_m+1)]
+        masks = [torch.ones(self.b, 1).to(self.device) for _ in range(2*self.c_s+1)]
         return goals_m, states_m, goals_s, states_s,  masks
 
 class Perception(nn.Module):
@@ -211,9 +211,12 @@ class Manager(nn.Module):
         t_s = self.c_s
         mask = torch.stack(masks[t_m: t_m + self.c_m - 1]).prod(dim=0)
 
-        goals_m_ = torch.cat([goals_m[t_m], goals_m[t_m]], dim=1)
+        #goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
+        #goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
+        #cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
 
-        cosine_dist = d_cos(goals_s[t_s] - goals_s[t_s - self.c_s], goals_m_)
+        cosine_dist = d_cos(goals_s[t_s + self.c_s] - goals_s[t_s], goals_m[t_m])
+
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
 
         return cosine_dist
@@ -417,7 +420,7 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
 
     entropy = entropy.mean()
 
-    loss = ((- loss_worker - loss_manager - loss_supervisor + value_w_loss + value_s_loss + value_m_loss)/6) * 4 - args.entropy_coef * entropy
+    loss = (- loss_worker - loss_manager - loss_supervisor + value_w_loss + value_s_loss + value_m_loss) - args.entropy_coef * entropy
 
     return loss, {'loss/total_mp_loss': loss.item(),
                   'loss/worker': loss_worker.item(),
