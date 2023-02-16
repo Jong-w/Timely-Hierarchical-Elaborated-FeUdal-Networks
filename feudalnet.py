@@ -130,7 +130,6 @@ class Perception(nn.Module):
                 nn.modules.Flatten(),
                 nn.Linear(32 * 14 * 14, d),
                 nn.ReLU())
-
     def forward(self, x):
         return self.percept(x)
 
