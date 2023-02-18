@@ -1,5 +1,6 @@
 import argparse
 import torch
+import cv2
 
 from utils import make_envs, take_action, init_obj
 from meltingpotnet import MPnets, mp_loss
@@ -10,14 +11,14 @@ from logger import Logger
 parser = argparse.ArgumentParser(description='MPnet')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=0.0005,
-                    help='learning rate')
+                    help='learning rate')                                       # 'MiniGrid-LockedRoom-v0','MiniGrid-RedBlueDoors-6x6-v0' 'MiniGrid-LockedRoom-v0'
 parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
 parser.add_argument('--num-steps', type=int, default=400,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e8),
+parser.add_argument('--max-steps', type=int, default=int(1e7), #int(1e8)
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -25,31 +26,35 @@ parser.add_argument('--grad-clip', type=float, default=5.,
                     help='Gradient clipping (recommended).')
 parser.add_argument('--entropy-coef', type=float, default=0.01,
                     help='Entropy coefficient to encourage exploration.')
-parser.add_argument('--mlp', type=int, default=1,
+parser.add_argument('--mlp', type=int, default=0,
                     help='toggle to feedforward ML architecture')
-parser.add_argument('--partial', type=int, default=1,
-                    help='use partial information of the env')
+parser.add_argument('--whole', type=int, default=1,
+                    help='use whole information of the env')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon', type=int, default=10,
-                    help='Manager horizon (c)')
-parser.add_argument('--hidden-dim-manager', type=int, default=16,
+parser.add_argument('--time-horizon_manager', type=int, default=10,
+                    help='Manager horizon (c_m)')
+parser.add_argument('--time-horizon_supervisor', type=int, default=5,
+                    help='Manager horizon (c_s)')
+parser.add_argument('--hidden-dim-manager', type=int, default=120,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-supervisor', type=int, default=32,
+parser.add_argument('--hidden-dim-supervisor', type=int, default=60,
                     help='Hidden dim (n)')
-parser.add_argument('--hidden-dim-worker', type=int, default=8,
+parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
-parser.add_argument('--gamma-w', type=float, default=0.99,
+parser.add_argument('--gamma-w', type=float, default=0.9,
                     help="discount factor worker")
-parser.add_argument('--gamma-s', type=float, default=0.999,
+parser.add_argument('--gamma-s', type=float, default=0.95,
                     help="discount factor supervisor")
-parser.add_argument('--gamma-m', type=float, default=0.999,
+parser.add_argument('--gamma-m', type=float, default=0.99,
                     help="discount factor manager")
 parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
-parser.add_argument('--eps', type=float, default=int(1e-5),
+parser.add_argument('--eps', type=float, default=int(1e-8),
                     help='Random Gausian goal for exploration')
-parser.add_argument('--dilation', type=int, default=10,
+parser.add_argument('--dilation_manager', type=int, default=10,
+                    help='Dilation parameter for manager LSTM.')
+parser.add_argument('--dilation_supervisor', type=int, default=5,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
@@ -67,7 +72,7 @@ def experiment(args):
                                    int(args.max_steps) // 10).numpy())
 
     # logger = Logger(args.run_name, args)
-    logger = Logger(args.env_name, 'Bracket_Nets', args)
+    logger = Logger(args.env_name, 'MPnets_64', args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
     device = torch.device("cuda" if cuda_is_available else "cpu")
     args.device = device
@@ -77,23 +82,26 @@ def experiment(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-    envs = make_envs(args.env_name, args.num_workers, args.seed, args.partial)
+    envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
     MPnet = MPnets(
         num_workers=args.num_workers,
-        input_dim=(7, 7, 3), #envs.observation_space.shape
+        input_dim=envs.observation_space.shape,
         hidden_dim_manager=args.hidden_dim_manager,
         hidden_dim_supervisor=args.hidden_dim_supervisor,
         hidden_dim_worker=args.hidden_dim_worker,
         n_actions=envs.single_action_space.n,
-        time_horizon=args.time_horizon,
-        dilation=args.dilation,
+        time_horizon_manager=args.time_horizon_manager,
+        time_horizon_supervisor=args.time_horizon_supervisor,
+        dilation_manager=args.dilation_manager,
+        dilation_supervisor=args.dilation_supervisor,
         device=device,
         mlp=args.mlp,
         args=args,
-        partial=args.partial)
+        whole=args.whole)
 
-    optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr,
-                                    alpha=0.99, eps=1e-5)
+    #optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr, alpha=0.99, eps=1e-5)
+    optimizer = torch.optim.Adam(MPnet.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08)
+
     goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
 
     x = envs.reset()
@@ -131,7 +139,8 @@ def experiment(args):
                 'logp': logp.unsqueeze(-1),
                 'entropy': entropy.unsqueeze(-1),
                 's_goal_cos': MPnet.state_goal_cosine(states_s, goals_s, masks),
-                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
+                #'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
+                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, states_m, masks),
                 'm': mask
             })
 
@@ -158,7 +167,7 @@ def experiment(args):
                 'args': args,
                 'processor_mean': MPnet.preprocessor.rms.mean,
                 'optim': optimizer.state_dict()},
-                f'models/{args.env_name}_{args.run_name}_step={step}.pt')
+                f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
             save_steps.pop(0)
 
     envs.close()
@@ -167,7 +176,7 @@ def experiment(args):
         'args': args,
         'processor_mean': MPnet.preprocessor.rms.mean,
         'optim': optimizer.state_dict()},
-        f'models/{args.env_name}_{args.run_name}_BracketNets_steps={step}.pt')
+        f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
 
 
 def main(args):
