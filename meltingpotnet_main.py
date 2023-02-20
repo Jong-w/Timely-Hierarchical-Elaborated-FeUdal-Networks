@@ -36,9 +36,9 @@ parser.add_argument('--time-horizon_manager', type=int, default=10,
                     help='Manager horizon (c_m)')
 parser.add_argument('--time-horizon_supervisor', type=int, default=5,
                     help='Manager horizon (c_s)')
-parser.add_argument('--hidden-dim-manager', type=int, default=120,
+parser.add_argument('--hidden-dim-manager', type=int, default=68,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-supervisor', type=int, default=60,
+parser.add_argument('--hidden-dim-supervisor', type=int, default=136,
                     help='Hidden dim (n)')
 parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
@@ -140,7 +140,7 @@ def experiment(args):
                 'entropy': entropy.unsqueeze(-1),
                 's_goal_cos': MPnet.state_goal_cosine(states_s, goals_s, masks),
                 #'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
-                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, states_m, masks),
+                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s, masks),
                 'm': mask
             })
 

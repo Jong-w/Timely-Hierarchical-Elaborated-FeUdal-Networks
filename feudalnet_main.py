@@ -33,7 +33,7 @@ parser.add_argument('--whole', type=int, default=1,
 # SPECIFIC FEUDALNET PARAMETERS
 parser.add_argument('--time-horizon', type=int, default=10,
                     help='Manager horizon (c)')
-parser.add_argument('--hidden-dim-manager', type=int, default=120,
+parser.add_argument('--hidden-dim-manager', type=int, default=136,
                     help='Hidden dim (d)')
 parser.add_argument('--hidden-dim-worker', type=int, default=16,
                     help='Hidden dim for worker (k)')
@@ -74,6 +74,8 @@ def experiment(args):
         torch.backends.cudnn.benchmark = False
 
     envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
+
+
     feudalnet = FeudalNetwork(
         num_workers=args.num_workers,
         input_dim=envs.observation_space.shape,

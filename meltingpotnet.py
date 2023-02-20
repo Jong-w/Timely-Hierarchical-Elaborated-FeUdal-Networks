@@ -40,8 +40,8 @@ class MPnets(nn.Module):
         self.device = device
 
         self.preprocessor = Preprocessor(input_dim, device, mlp)
-        self.percept = Perception(input_dim, self.d, mlp)
-        self.manager = Manager(self.c_m, self.c_s,  self.d, self.r_m , args, device)
+        self.percept = Perception(input_dim, self.n, mlp)
+        self.manager = Manager(self.c_m, self.c_s,  self.d, self.n, self.r_m , args, device)
         self.supervisor = Supervisor(self.c_m, self.c_s, self.d, self.n, self.r_s, args, device)
         self.worker = Worker(self.b, self.c_m, self.c_s, self.d, self.n, self.k, n_actions, device)
 
@@ -147,28 +147,29 @@ class Perception(nn.Module):
                 nn.ReLU())
         else:
             self.percept = nn.Sequential(
-                nn.Conv2d(3, 16, kernel_size=4, stride=4),
+                nn.Conv2d(3, 16, kernel_size=8, stride=4),
                 nn.ReLU(),
-                nn.Conv2d(16, 32, kernel_size=4, stride=2),
+                nn.Conv2d(16, 32, kernel_size=5, stride=4),
                 nn.ReLU(),
                 nn.modules.Flatten(),
-                nn.Linear(32 * 14 * 14, d),
+                nn.Linear(32 * 8 * 8, d),
                 nn.ReLU())
 
     def forward(self, x):
         return self.percept(x)
 
 class Manager(nn.Module):
-    def __init__(self, c_m, c_s, d, r_m , args, device):
+    def __init__(self, c_m, c_s, d, n, r_m , args, device):
         super().__init__()
         self.c_m = c_m  # Time Horizon
         self.c_s = c_s
         self.d = d  # Hidden dimension size
+        self.n = n
         self.r = r_m  # Dilation level
         self.eps = args.eps
         self.device = device
 
-        self.Mspace = nn.Linear(self.d, self.d)
+        self.Mspace = nn.Linear(self.n, self.d)
         self.Mrnn = DilatedLSTM(self.d, self.d, self.r)
         self.critic = nn.Linear(self.d, 1)
 
@@ -215,7 +216,9 @@ class Manager(nn.Module):
         #goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
         #cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
 
-        cosine_dist = d_cos(goals_s[t_s + self.c_s] - goals_s[t_s], goals_m[t_m])
+        goals_m_t = torch.cat([goals_m[t_m], goals_m[t_m]], dim=1)
+
+        cosine_dist = d_cos(goals_s[t_s + self.c_s] - goals_s[t_s], goals_m_t)
 
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
 
@@ -232,8 +235,9 @@ class Supervisor(nn.Module):
         self.device = device
         self.n = n
 
-        self.Sspace = nn.Linear(self.d, self.n)
+        self.Sspace = nn.Linear(self.n, self.n)
         self.phi = nn.Linear(self.d, self.n, bias=False)
+        self.phi_hat = nn.Linear(self.n*2, self.n)
         self.Srnn = DilatedLSTM(self.n, self.n, self.r)
         self.critic = nn.Linear(self.n, 1)
 
@@ -242,7 +246,9 @@ class Supervisor(nn.Module):
         manager_goal = self.phi(goal_m)
         hidden = (mask * hidden[0], mask * hidden[1])
         goal_, hidden = self.Srnn(state, hidden)
-        goal_hat = manager_goal + goal_
+        goal_cat = torch.cat((manager_goal, goal_), 1)
+        goal_hat = self.phi_hat(goal_cat)
+        #goal_hat = manager_goal + goal_
         value_est = self.critic(goal_hat)
 
         # From goal_hat to goal
@@ -291,7 +297,7 @@ class Worker(nn.Module):
         self.num_actions = num_actions
         self.device = device
 
-        self.Wrnn = nn.LSTMCell(d, k * self.num_actions)
+        self.Wrnn = nn.LSTMCell(n, k * self.num_actions)
         self.phi = nn.Linear(self.n, k, bias=False)
 
         self.critic = nn.Sequential(
