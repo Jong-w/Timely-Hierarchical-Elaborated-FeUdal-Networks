@@ -17,7 +17,7 @@ parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
 parser.add_argument('--num-steps', type=int, default=400,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e9),
+parser.add_argument('--max-steps', type=int, default=int(1e7),
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -35,15 +35,19 @@ parser.add_argument('--time-horizon', type=int, default=10,
                     help='Manager horizon (c)')
 parser.add_argument('--hidden-dim-manager', type=int, default=120,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-worker', type=int, default=16,
+parser.add_argument('--hidden-dim-worker', type=int, default=32,
                     help='Hidden dim for worker (k)')
-parser.add_argument('--gamma-w', type=float, default=0.9,
+# parser.add_argument('--gamma-w', type=float, default=0.9,
+#                     help="discount factor worker")
+# parser.add_argument('--gamma-m', type=float, default=0.99,
+#                     help="discount factor manager")
+parser.add_argument('--gamma-w', type=float, default=1,
                     help="discount factor worker")
-parser.add_argument('--gamma-m', type=float, default=0.99,
+parser.add_argument('--gamma-m', type=float, default=1,
                     help="discount factor manager")
 parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
-parser.add_argument('--eps', type=float, default=int(1e-5),
+parser.add_argument('--eps', type=float, default=int(1e-4),
                     help='Random Gausian goal for exploration')
 parser.add_argument('--dilation', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
