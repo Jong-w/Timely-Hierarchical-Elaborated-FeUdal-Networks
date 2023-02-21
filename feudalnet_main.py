@@ -52,6 +52,7 @@ parser.add_argument('--eps', type=float, default=float(1e-2),
 parser.add_argument('--dilation', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 
+
 # EXPERIMENT RELATED PARAMS
 parser.add_argument('--run-name', type=str, default='baseline',
                     help='run name for the logger.')
