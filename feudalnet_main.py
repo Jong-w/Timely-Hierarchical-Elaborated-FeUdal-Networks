@@ -29,6 +29,10 @@ parser.add_argument('--mlp', type=int, default=1,
                     help='toggle to feedforward ML architecture')
 parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
+parser.add_argument('--reward-reg', type=int, default=5000,
+                    help='reward regulaizer')
+parser.add_argument('--env-max-step', type=int, default=5000,
+                    help='max step for environment typically same as reward-reg')
 
 # SPECIFIC FEUDALNET PARAMETERS
 parser.add_argument('--time-horizon', type=int, default=10,
@@ -78,7 +82,7 @@ def experiment(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-    envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
+    envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole, args.reward_reg, args.env_max_step)
     feudalnet = FeudalNetwork(
         num_workers=args.num_workers,
         input_dim=envs.observation_space.shape,

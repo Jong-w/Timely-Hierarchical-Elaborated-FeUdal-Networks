@@ -31,7 +31,37 @@ class ReturnWrapper(gym.Wrapper):
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
         # TODO: reward가 왜 0또는 1이 아니지?
-        self.total_rewards += np.ceil(reward)
+        reward = np.ceil(reward)
+
+        self.total_rewards += reward
+        self.steps += 1
+        if done:
+            info['returns/episodic_reward'] = self.total_rewards
+            info['returns/episodic_length'] = self.steps
+            self.total_rewards = 0
+            self.steps = 0
+        else:
+            info['returns/episodic_reward'] = None
+            info['returns/episodic_length'] = None
+        return obs, reward, done, info
+
+class ReturnWrapper_wargs(ReturnWrapper):
+    #######################################################################
+    # Copyright (C) 2020 Shangtong Zhang(zhangshangtong.cpp@gmail.com)    #
+    # Permission given to modify the code as long as you keep this        #
+    # declaration at the top                                              #
+    #######################################################################
+    def __init__(self, env, reward_reg=5000):
+        super().__init__(env)
+        self.total_rewards = 0
+        self.steps = 0
+        self.multiplier = reward_reg
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        reward = np.ceil(reward)*self.multiplier/(self.steps+1)
+
+        self.total_rewards += reward
         self.steps += 1
         if done:
             info['returns/episodic_reward'] = self.total_rewards
@@ -89,6 +119,13 @@ class FlattenWrapper(gym.core.ObservationWrapper):
 
         return full_grid
 
+def flatten_fullview_wrapperWrapper(env, reward_reg=5000, env_max_step=5000):
+    env.max_steps = reward_reg
+    env = FullyObsWrapper(env)
+    env = FlattenWrapper(env)
+    env = ReturnWrapper_wargs(env, reward_reg=reward_reg)
+    return env
+
 def flatten_fullview_wrapper(env):
     env = FullyObsWrapper(env)
     env = FlattenWrapper(env)
@@ -122,9 +159,12 @@ def atari_wrapper(env):
     return env
 
 
-def make_envs(env_name, num_envs, seed=0, partial=1):
+def make_envs(env_name, num_envs, seed=0, partial=1, reward_reg=5000, env_max_step=5000):
     env_ = gym.make(env_name)
-    wrapper_fn = flatten_fullview_wrapper
+
+    wrapper_fn = lambda env: flatten_fullview_wrapperWrapper(env, reward_reg=reward_reg, env_max_step=env_max_step)
+    # wrapper_fn = flatten_fullview_wrapper
+
     envs = gym.vector.make(env_name, num_envs, wrappers=wrapper_fn)
     envs.seed(seed)
     return envs
