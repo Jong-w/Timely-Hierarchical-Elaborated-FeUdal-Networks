@@ -119,9 +119,9 @@ class Perception(nn.Module):
             self.percept = nn.Sequential(
                 nn.Linear(input_dim[-1] * input_dim[1] * input_dim[2], 256),
                 nn.ReLU(),
-                nn.Linear(256, 64),
-                nn.ReLU(),
-                nn.Linear(64, d),
+                # nn.Linear(256, 256),
+                # nn.ReLU(),
+                nn.Linear(256, d),
                 nn.ReLU())
         else:
             self.percept = nn.Sequential(

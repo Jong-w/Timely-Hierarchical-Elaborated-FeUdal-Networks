@@ -13,7 +13,7 @@ from gym_minigrid.window import Window
 import torch
 import numpy as np
 import cv2
-
+import wandb
 from torch.distributions import Categorical
 
 
@@ -31,7 +31,7 @@ class ReturnWrapper(gym.Wrapper):
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
         # TODO: reward가 왜 0또는 1이 아니지?
-        reward = np.ceil(reward)
+        # reward = np.ceil(reward)
 
         self.total_rewards += reward
         self.steps += 1
@@ -59,8 +59,8 @@ class ReturnWrapper_wargs(ReturnWrapper):
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
-        reward = np.ceil(reward)*self.multiplier/(self.steps+1)
-
+        # reward = np.ceil(reward)*self.multiplier/(self.steps+1)
+        reward *= self.multiplier
         self.total_rewards += reward
         self.steps += 1
         if done:
@@ -71,6 +71,7 @@ class ReturnWrapper_wargs(ReturnWrapper):
         else:
             info['returns/episodic_reward'] = None
             info['returns/episodic_length'] = None
+
         return obs, reward, done, info
 
 
@@ -119,8 +120,13 @@ class FlattenWrapper(gym.core.ObservationWrapper):
 
         return full_grid
 
-def flatten_fullview_wrapperWrapper(env, reward_reg=5000, env_max_step=5000):
-    env.max_steps = reward_reg
+def flatten_fullview_wrapperWrapper(env, reward_reg=5000, env_max_step=5000, grid_size=19):
+    env.max_steps = env_max_step
+    env.grid_size = grid_size
+    env.grid.__init__(grid_size, grid_size)
+    env._agent_default_pos = None
+    env._goal_default_pos = None
+    env._gen_grid(grid_size, grid_size)
     env = FullyObsWrapper(env)
     env = FlattenWrapper(env)
     env = ReturnWrapper_wargs(env, reward_reg=reward_reg)
@@ -159,14 +165,13 @@ def atari_wrapper(env):
     return env
 
 
-def make_envs(env_name, num_envs, seed=0, partial=1, reward_reg=5000, env_max_step=5000):
+def make_envs(env_name, num_envs, partial=1, reward_reg=5000, env_max_step=5000, grid_size=19):
     env_ = gym.make(env_name)
 
-    wrapper_fn = lambda env: flatten_fullview_wrapperWrapper(env, reward_reg=reward_reg, env_max_step=env_max_step)
+    wrapper_fn = lambda env: flatten_fullview_wrapperWrapper(env, reward_reg=reward_reg, env_max_step=env_max_step, grid_size=grid_size)
     # wrapper_fn = flatten_fullview_wrapper
 
     envs = gym.vector.make(env_name, num_envs, wrappers=wrapper_fn)
-    envs.seed(seed)
     return envs
 
 
