@@ -56,7 +56,7 @@ class MPnets(nn.Module):
         self.to(device)
         self.apply(weight_init)
 
-    def forward(self, x, goals_m, states_m, goals_s, states_s,  mask, save=True):
+    def forward(self, x, goals_m, states_m, goals_s, states_s,  mask, eps, save=True):
         """A forward pass through the whole feudal network.
 
         Order of operations:
@@ -78,10 +78,10 @@ class MPnets(nn.Module):
         z = self.percept(x)
 
         goal_m, hidden_m, state_m, value_m = self.manager(
-            z, self.hidden_m, mask)
+            z, self.hidden_m, mask, eps)
 
         goal_s, hidden_s, state_s, value_s = self.supervisor(
-            z, goal_m, self.hidden_s, mask)
+            z, goal_m, self.hidden_s, mask, eps)
 
         # Ensure that we only have a list of size 2*c + 1, and we use FiLo
         if len(goals_m) > (2 * self.c_m + 1):
@@ -166,14 +166,13 @@ class Manager(nn.Module):
         self.d = d  # Hidden dimension size
         self.n = n
         self.r = r_m  # Dilation level
-        self.eps = args.eps
         self.device = device
 
         self.Mspace = nn.Linear(self.n, self.d)
         self.Mrnn = DilatedLSTM(self.d, self.d, self.r)
         self.critic = nn.Linear(self.d, 1)
 
-    def forward(self, z, hidden, mask):
+    def forward(self, z, hidden, mask, eps):
         state = self.Mspace(z).relu()
         hidden = (mask * hidden[0], mask * hidden[1])
         goal_hat, hidden = self.Mrnn(state, hidden)
@@ -183,7 +182,7 @@ class Manager(nn.Module):
         goal = normalize(goal_hat)
         state = state.detach()
 
-        if (self.eps > torch.rand(1)[0]):
+        if (eps > torch.rand(1)[0]):
             # To encourage exploration in transition policy,
             # at every step with a small probability ε
             # we emit a random goal sampled from a uni-variate Gaussian.
@@ -225,13 +224,12 @@ class Manager(nn.Module):
         return cosine_dist
 
 class Supervisor(nn.Module):
-    def __init__(self, c_m, c_s, d, n, r_s, args, device, ):
+    def __init__(self, c_m, c_s, d, n, r_s, args, device):
         super().__init__()
         self.c_m = c_m  # Time Horizon
         self.c_s = c_s
         self.d = d  # Hidden dimension size
         self.r = r_s  # Dilation level
-        self.eps = args.eps
         self.device = device
         self.n = n
 
@@ -241,7 +239,7 @@ class Supervisor(nn.Module):
         self.Srnn = DilatedLSTM(self.n, self.n, self.r)
         self.critic = nn.Linear(self.n, 1)
 
-    def forward(self, z, goal_m, hidden, mask):
+    def forward(self, z, goal_m, hidden, mask, eps):
         state = self.Sspace(z).relu()
         manager_goal = self.phi(goal_m)
         hidden = (mask * hidden[0], mask * hidden[1])
@@ -255,7 +253,7 @@ class Supervisor(nn.Module):
         goal = normalize(goal_hat)
         state = state.detach()
 
-        if (self.eps > torch.rand(1)[0]):
+        if (eps > torch.rand(1)[0]):
             # To encourage exploration in transition policy,
             # at every step with a small probability ε
             # we emit a random goal sampled from a uni-variate Gaussian.
@@ -371,7 +369,7 @@ class Worker(nn.Module):
         r_i = r_i.detach()
         return r_i / self.c_s
 
-def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
+def mp_loss(storage, next_v_m, next_v_s, next_v_w, args, eps):
     """Calculate the loss for Worker and Manager,
 
     with timesteps T, batch size B and hidden dim D. Each of the objects
@@ -441,4 +439,6 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
                   'supervisor/cosines': goal_goal_cosines.mean().item(),
                   'supervisor/advantage': advantage_s.mean().item(),
                   'manager/cosines': state_goal_cosines.mean().item(),
-                  'manager/advantage': advantage_m.mean().item()}
+                  'manager/advantage': advantage_m.mean().item(),
+                  'eps' : eps
+                  }

@@ -18,7 +18,7 @@ parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
 parser.add_argument('--num-steps', type=int, default=400,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e7), #int(1e8)
+parser.add_argument('--max-steps', type=int, default=int(1e8), #int(1e8)
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -50,8 +50,9 @@ parser.add_argument('--gamma-m', type=float, default=0.99,
                     help="discount factor manager")
 parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
-parser.add_argument('--eps', type=float, default=int(1e-8),
+parser.add_argument('--eps', type=float, default=float(1),
                     help='Random Gausian goal for exploration')
+# 0.99
 parser.add_argument('--dilation_manager', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 parser.add_argument('--dilation_supervisor', type=int, default=5,
@@ -100,26 +101,30 @@ def experiment(args):
         whole=args.whole)
 
     #optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr, alpha=0.99, eps=1e-5)
-    optimizer = torch.optim.Adam(MPnet.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08)
+    #optimizer = torch.optim.Adam(MPnet.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-05)
+    optimizer = torch.optim.NAdam(MPnet.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-05, weight_decay=0, momentum_decay=0.004,foreach=None)
 
     goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
 
     x = envs.reset()
     step = 0
+    eps = args.eps
     while step < args.max_steps:
-
         # Detaching LSTMs and goals_m
         MPnet.repackage_hidden()
         goals_m = [g.detach() for g in goals_m]
         goals_s = [g.detach() for g in goals_s]
         storage = Storage(size=args.num_steps,
                           keys=['r', 'r_i', 'v_w', 'v_s', 'v_m', 'logp', 'entropy',
-                                's_goal_cos', 'g_goal_cos','mask', 'ret_w', 'ret_s', 'ret_m',
-                                'adv_m', 'adv_w'])
+                                's_goal_cos', 'g_goal_cos','mask', 'ret_w', 'ret_s', 'ret_m', 'adv_m', 'adv_w'])
+        if eps > 0.01:
+            eps = eps * 0.999
+        else:
+            eps = eps
 
         for _ in range(args.num_steps):
             action_dist, goals_m, states_m, value_m, goals_s, states_s, value_s, value_w \
-                = MPnet(x, goals_m, states_m, goals_s, states_s, masks[-1])
+                = MPnet(x, goals_m, states_m, goals_s, states_s, masks[-1], eps=eps)
 
             # Take a step, log the info, get the next state
             action, logp, entropy = take_action(action_dist)
@@ -148,14 +153,14 @@ def experiment(args):
 
         with torch.no_grad():
             _, _, _, next_v_m, _, _, next_v_s, next_v_w = MPnet(
-                x, goals_m, states_m, goals_s, states_s, mask, save=False)
+                x, goals_m, states_m, goals_s, states_s, mask, eps,  save=False)
 
             next_v_m = next_v_m.detach()
             next_v_s = next_v_s.detach()
             next_v_w = next_v_w.detach()
 
         optimizer.zero_grad()
-        loss, loss_dict = mp_loss(storage, next_v_m, next_v_s, next_v_w, args)
+        loss, loss_dict = mp_loss(storage, next_v_m, next_v_s, next_v_w, args, eps)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(MPnet.parameters(), args.grad_clip)
         optimizer.step()
