@@ -1,5 +1,7 @@
 import argparse
 import torch
+import numpy as np
+import wandb
 
 from utils import make_envs, take_action, init_obj
 from feudalnet import FeudalNetwork, feudal_loss
@@ -153,6 +155,50 @@ def experiment(args):
                 'optim': optimizer.state_dict()},
                 f'models/{args.env_name}_{args.run_name}_FeudalNets_step={step}.pt')
             save_steps.pop(0)
+
+            print('logger')
+            import logging
+
+            max_step_trueepi = 10
+            step_trueepi = 0
+            _total_rewards = []
+            _total_steps = []
+            _step = 0
+
+            # take mean of 100
+            while True:
+                # Detaching LSTMs and goals
+                feudalnet.repackage_hidden()
+                goals = [g.detach() for g in goals]
+
+                x = envs.reset()
+                action_dist, goals, states, value_m, value_w \
+                    = feudalnet(x, goals, states, masks[-1])
+                action_dist_ = action_dist.tolist()
+                action_dist_max = np.array(
+                    [np.double(np.array(action_dist_[i] == np.max(action_dist_[i]))) for i in range(len(action_dist_))])
+
+                # Take a step, log the info, get the next state
+                action, logp, entropy = take_action(torch.asarray(action_dist_max))
+                x, reward, done, info = envs.step(action)
+
+                for episode_dict in info:
+                    if episode_dict['returns/episodic_reward'] is not None:
+                        reward = episode_dict['returns/episodic_reward']
+                        length = episode_dict['returns/episodic_length']
+                        _total_rewards.append(reward)
+                        _total_steps.append(length)
+                        logging.info(
+                            f"<<<>>> TRUE <<<>>> ep = {step_trueepi + 1} | reward = {reward} | length = {length}")
+                        wandb.log(
+                            {"test/episode/reward": reward, "test/episode/length": length})
+                        step_trueepi += 1
+
+                _step += args.num_workers
+                if step_trueepi > max_step_trueepi or _step > (args.num_workers) * args.env_max_step * max_step_trueepi:
+                    wandb.log({"test/mean/reward": np.mean(_total_rewards), "test/mean/length": np.mean(_total_steps)})
+                    break
+
 
     envs.close()
     torch.save({
