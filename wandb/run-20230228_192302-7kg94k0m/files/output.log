@@ -1,0 +1,26 @@
+2023/02/28 07:23:05 PM Namespace(alpha=0.5, cuda=True, dilation=10, entropy_coef=1e-05, env_max_step=100, env_name='MiniGrid-FourRooms-v0', eps=0.0001, gamma_m=0.99, gamma_w=0.9, grad_clip=1.0, grid_size=19, hidden_dim_manager=64, hidden_dim_worker=32, lr=9.999999999999999e-06, max_steps=1000000, mlp=1, num_steps=100, num_workers=16, reward_reg=1, run_name='baseline_seed=0', seed=0, time_horizon=10, whole=1)
+Traceback (most recent call last):
+  File "/Applications/PyCharm CE.app/Contents/plugins/python-ce/helpers/pydev/_pydevd_bundle/pydevd_comm.py", line 304, in _on_run
+    r = r.decode('utf-8')
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xec in position 1023: unexpected end of data
+Traceback (most recent call last):
+  File "/Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/feudalnet_main.py", line 373, in <module>
+    main(args)
+  File "/Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/feudalnet_main.py", line 368, in main
+    experiment(args)
+  File "/Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/feudalnet_main.py", line 108, in experiment
+    whole=args.whole)
+  File "/Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/feudalnet.py", line 48, in __init__
+    self.apply(weight_init)
+  File "/Users/dongjaekim/opt/anaconda3/envs/Fun_Hierarchy_atari/lib/python3.7/site-packages/torch/nn/modules/module.py", line 728, in apply
+    module.apply(fn)
+  File "/Users/dongjaekim/opt/anaconda3/envs/Fun_Hierarchy_atari/lib/python3.7/site-packages/torch/nn/modules/module.py", line 728, in apply
+    module.apply(fn)
+  File "/Users/dongjaekim/opt/anaconda3/envs/Fun_Hierarchy_atari/lib/python3.7/site-packages/torch/nn/modules/module.py", line 728, in apply
+    module.apply(fn)
+  File "/Users/dongjaekim/opt/anaconda3/envs/Fun_Hierarchy_atari/lib/python3.7/site-packages/torch/nn/modules/module.py", line 729, in apply
+    fn(self)
+  File "/Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/utils.py", line 201, in weight_init
+    torch.nn.init.orthogonal_(layer.weight.data)
+  File "/Users/dongjaekim/opt/anaconda3/envs/Fun_Hierarchy_atari/lib/python3.7/site-packages/torch/nn/init.py", line 478, in orthogonal_
+    flattened = tensor.new(rows, cols).normal_(0, 1)

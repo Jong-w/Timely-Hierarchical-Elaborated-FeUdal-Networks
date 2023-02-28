@@ -4,48 +4,120 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c31312de-d295-439c-8328-68478d93f209" name="Changes" comment="go you go">
-      <change beforePath="$PROJECT_DIR$/.idea/Fun_Hierarchy.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Fun_Hierarchy.iml" afterDir="false" />
+    <list default="true" id="dee29e24-2d77-41ca-860e-78d8a45421f9" name="Changes" comment="New branch for atari">
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677577794.Dongjaeui-noteubug.local.43343.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677577918.Dongjaeui-noteubug.local.43629.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677577956.Dongjaeui-noteubug.local.43697.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677577982.Dongjaeui-noteubug.local.43759.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677578112.Dongjaeui-noteubug.local.43951.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677578145.Dongjaeui-noteubug.local.44017.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677578518.Dongjaeui-noteubug.local.44444.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677579785.Dongjaeui-noteubug.local.45801.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677579987.Dongjaeui-noteubug.local.46022.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677580744.Dongjaeui-noteubug.local.46667.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/debug-cli.dongjaekim.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/latest-run" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_184951-qekneino/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_184951-qekneino/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_184951-qekneino/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_184951-qekneino/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_184951-qekneino/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_184951-qekneino/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_184951-qekneino/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_184951-qekneino/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_184951-qekneino/run-qekneino.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185155-xw3wheuu/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185155-xw3wheuu/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185155-xw3wheuu/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185155-xw3wheuu/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185155-xw3wheuu/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185155-xw3wheuu/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185155-xw3wheuu/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185155-xw3wheuu/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185155-xw3wheuu/run-xw3wheuu.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185233-jp253eeh/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185233-jp253eeh/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185233-jp253eeh/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185233-jp253eeh/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185233-jp253eeh/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185233-jp253eeh/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185233-jp253eeh/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185233-jp253eeh/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185233-jp253eeh/run-jp253eeh.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185259-yrisyta3/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185259-yrisyta3/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185259-yrisyta3/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185259-yrisyta3/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185259-yrisyta3/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185259-yrisyta3/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185259-yrisyta3/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185259-yrisyta3/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185259-yrisyta3/run-yrisyta3.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185508-237sgxt6/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185508-237sgxt6/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185508-237sgxt6/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185508-237sgxt6/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185508-237sgxt6/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185508-237sgxt6/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185508-237sgxt6/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185508-237sgxt6/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185508-237sgxt6/run-237sgxt6.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185542-3oe5ylo6/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185542-3oe5ylo6/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185542-3oe5ylo6/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185542-3oe5ylo6/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185542-3oe5ylo6/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185542-3oe5ylo6/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185542-3oe5ylo6/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185542-3oe5ylo6/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_185542-3oe5ylo6/run-3oe5ylo6.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_190155-jn1xomyd/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_190155-jn1xomyd/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_190155-jn1xomyd/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_190155-jn1xomyd/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_190155-jn1xomyd/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_190155-jn1xomyd/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_190155-jn1xomyd/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_190155-jn1xomyd/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_190155-jn1xomyd/run-jn1xomyd.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192302-7kg94k0m/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192302-7kg94k0m/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192302-7kg94k0m/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192302-7kg94k0m/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192302-7kg94k0m/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192302-7kg94k0m/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192302-7kg94k0m/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192302-7kg94k0m/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192302-7kg94k0m/run-7kg94k0m.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192623-emx7td6a/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192623-emx7td6a/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192623-emx7td6a/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192623-emx7td6a/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192623-emx7td6a/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192623-emx7td6a/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192623-emx7td6a/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192623-emx7td6a/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_192623-emx7td6a/run-emx7td6a.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_193859-d8n1ohnb/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_193859-d8n1ohnb/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_193859-d8n1ohnb/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_193859-d8n1ohnb/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_193859-d8n1ohnb/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_193859-d8n1ohnb/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_193859-d8n1ohnb/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_193859-d8n1ohnb/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230228_193859-d8n1ohnb/run-d8n1ohnb.wandb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feudalnet.py" beforeDir="false" afterPath="$PROJECT_DIR$/feudalnet.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/feudalnet_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/feudalnet_main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets].log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/a1-1-1e-2/events.out.tfevents.1677091721.DESKTOP-T970K53.23720.1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/a9-99-1e-2/events.out.tfevents.1677108127.DESKTOP-T970K53.18640.0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/a9-99-1e-4/events.out.tfevents.1677110768.dongjae-lab.14136.0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/a9-99-1e-4/events.out.tfevents.1677120319.dongjae-lab.14136.1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677160930.DESKTOP-T970K53.12176.0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677179608.DESKTOP-T970K53.12176.1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/odls/events.out.tfevents.1676882331.dongjae-lab.1336.0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/odls/events.out.tfevents.1676902151.dongjae-lab.1336.1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/odls/events.out.tfevents.1676939955.dongjae-lab.16904.0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/odls/events.out.tfevents.1676940235.dongjae-lab.28324.0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/odls/events.out.tfevents.1676960981.dongjae-lab.28324.1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/odls/events.out.tfevents.1676990220.dongjae-lab.11680.0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=1004800.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=2003200.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=3001600.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=4006400.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=5004800.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=6003200.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=6400.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=7001600.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=8006400.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=9004800.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_steps=10003200.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=1004800.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=2003200.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=3001600.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=4006400.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=5004800.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=6003200.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=6400.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=7001600.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=8006400.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_FeudalNets_step=9004800.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=1_steps=10003200.pt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets].log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets].log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=100800.pt" beforeDir="false" afterPath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=100800.pt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=1600.pt" beforeDir="false" afterPath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=1600.pt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=201600.pt" beforeDir="false" afterPath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=201600.pt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=300800.pt" beforeDir="false" afterPath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=300800.pt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=401600.pt" beforeDir="false" afterPath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_seed=0_FeudalNets_step=401600.pt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,18 +136,21 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="2Lzlre3tVqZNmqxB27a4pdRKQEf" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.feudalnet_main">
     <configuration name="feudalnet" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Fun_Hierarchy" />
@@ -213,7 +288,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="dk_4" />
+                        <option value="pixel_array" />
                       </list>
                     </value>
                   </entry>
@@ -226,6 +301,7 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="update" />
     <MESSAGE value="new branch" />
     <MESSAGE value="go you go" />
@@ -236,8 +312,23 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/feudalnet_main.py</url>
-          <line>223</line>
-          <option name="timeStamp" value="32" />
+          <line>228</line>
+          <option name="timeStamp" value="101" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/feudalnet_main.py</url>
+          <line>227</line>
+          <option name="timeStamp" value="102" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/feudalnet_main.py</url>
+          <line>226</line>
+          <option name="timeStamp" value="103" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/feudalnet_main.py</url>
+          <line>255</line>
+          <option name="timeStamp" value="104" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

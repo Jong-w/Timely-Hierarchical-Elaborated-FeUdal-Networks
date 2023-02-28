@@ -1,0 +1,94 @@
+2023-02-28 19:23:02,224 INFO    StreamThr :45815 [internal.py:wandb_internal():90] W&B internal server running at pid: 45815, started at: 2023-02-28 19:23:02.223722
+2023-02-28 19:23:02,226 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status
+2023-02-28 19:23:02,241 INFO    WriterThread:45815 [datastore.py:open_for_write():85] open: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/run-7kg94k0m.wandb
+2023-02-28 19:23:02,242 DEBUG   SenderThread:45815 [sender.py:send():336] send: header
+2023-02-28 19:23:02,282 DEBUG   SenderThread:45815 [sender.py:send():336] send: run
+2023-02-28 19:23:02,862 INFO    SenderThread:45815 [dir_watcher.py:__init__():216] watching files in: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files
+2023-02-28 19:23:02,862 INFO    SenderThread:45815 [sender.py:_start_run_threads():1070] run started: 7kg94k0m with start time 1677579782.225363
+2023-02-28 19:23:02,862 DEBUG   SenderThread:45815 [sender.py:send_request():363] send_request: summary_record
+2023-02-28 19:23:02,863 INFO    SenderThread:45815 [sender.py:_save_file():1321] saving file wandb-summary.json with policy end
+2023-02-28 19:23:02,868 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: check_version
+2023-02-28 19:23:02,868 DEBUG   SenderThread:45815 [sender.py:send_request():363] send_request: check_version
+2023-02-28 19:23:02,933 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: run_start
+2023-02-28 19:23:02,935 DEBUG   HandlerThread:45815 [system_info.py:__init__():31] System info init
+2023-02-28 19:23:02,935 DEBUG   HandlerThread:45815 [system_info.py:__init__():46] System info init done
+2023-02-28 19:23:02,935 INFO    HandlerThread:45815 [system_monitor.py:start():151] Starting system monitor
+2023-02-28 19:23:02,935 INFO    SystemMonitor:45815 [system_monitor.py:_start():116] Starting system asset monitoring threads
+2023-02-28 19:23:02,935 INFO    HandlerThread:45815 [system_monitor.py:probe():172] Collecting system info
+2023-02-28 19:23:02,936 DEBUG   HandlerThread:45815 [system_info.py:probe():195] Probing system
+2023-02-28 19:23:02,937 INFO    SystemMonitor:45815 [interfaces.py:start():168] Started cpu
+2023-02-28 19:23:02,937 INFO    SystemMonitor:45815 [interfaces.py:start():168] Started disk
+2023-02-28 19:23:02,938 INFO    SystemMonitor:45815 [interfaces.py:start():168] Started memory
+2023-02-28 19:23:02,947 INFO    SystemMonitor:45815 [interfaces.py:start():168] Started network
+2023-02-28 19:23:02,955 DEBUG   HandlerThread:45815 [system_info.py:_probe_git():180] Probing git
+2023-02-28 19:23:03,021 DEBUG   HandlerThread:45815 [system_info.py:_probe_git():188] Probing git done
+2023-02-28 19:23:03,021 DEBUG   HandlerThread:45815 [system_info.py:probe():241] Probing system done
+2023-02-28 19:23:03,021 DEBUG   HandlerThread:45815 [system_monitor.py:probe():181] {'os': 'Darwin-22.1.0-x86_64-i386-64bit', 'python': '3.7.15', 'heartbeatAt': '2023-02-28T10:23:02.936143', 'startedAt': '2023-02-28T10:23:02.208212', 'docker': None, 'cuda': None, 'args': (), 'state': 'running', 'program': '/Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/feudalnet_main.py', 'git': {'remote': 'https://github.com/ZZikeregi/Fun_Hierarchy.git', 'commit': '97be53ab14b85fa02b7c5ada13c3325a227eb05e'}, 'email': 'dongjaekim@dankook.ac.kr', 'root': '/Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy', 'host': 'Dongjaeui-noteubug.local', 'username': 'dongjaekim', 'executable': '/Users/dongjaekim/opt/anaconda3/envs/Fun_Hierarchy_atari/bin/python', 'cpu_count': 8, 'cpu_count_logical': 8, 'cpu_freq': {'current': 2400, 'min': 2400, 'max': 2400}, 'cpu_freq_per_core': [{'current': 2400, 'min': 2400, 'max': 2400}], 'disk': {'total': 926.3517189025879, 'used': 11.063678741455078}, 'memory': {'total': 16.0}}
+2023-02-28 19:23:03,021 INFO    HandlerThread:45815 [system_monitor.py:probe():182] Finished collecting system info
+2023-02-28 19:23:03,021 INFO    HandlerThread:45815 [system_monitor.py:probe():185] Publishing system info
+2023-02-28 19:23:03,021 DEBUG   HandlerThread:45815 [system_info.py:_save_pip():52] Saving list of pip packages installed into the current environment
+2023-02-28 19:23:03,022 DEBUG   HandlerThread:45815 [system_info.py:_save_pip():67] Saving pip packages done
+2023-02-28 19:23:03,022 DEBUG   HandlerThread:45815 [system_info.py:_save_conda():75] Saving list of conda packages installed into the current environment
+2023-02-28 19:23:03,870 INFO    Thread-17 :45815 [dir_watcher.py:_on_file_created():275] file/dir created: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files/requirements.txt
+2023-02-28 19:23:03,871 INFO    Thread-17 :45815 [dir_watcher.py:_on_file_created():275] file/dir created: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files/wandb-summary.json
+2023-02-28 19:23:03,871 INFO    Thread-17 :45815 [dir_watcher.py:_on_file_created():275] file/dir created: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files/conda-environment.yaml
+2023-02-28 19:23:05,383 DEBUG   HandlerThread:45815 [system_info.py:_save_conda():86] Saving conda packages done
+2023-02-28 19:23:05,384 INFO    HandlerThread:45815 [system_monitor.py:probe():187] Finished publishing system info
+2023-02-28 19:23:05,398 DEBUG   SenderThread:45815 [sender.py:send():336] send: files
+2023-02-28 19:23:05,398 INFO    SenderThread:45815 [sender.py:_save_file():1321] saving file wandb-metadata.json with policy now
+2023-02-28 19:23:05,409 DEBUG   SenderThread:45815 [sender.py:send():336] send: telemetry
+2023-02-28 19:23:05,409 DEBUG   SenderThread:45815 [sender.py:send():336] send: telemetry
+2023-02-28 19:23:05,410 DEBUG   SenderThread:45815 [sender.py:send():336] send: run
+2023-02-28 19:23:05,423 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: stop_status
+2023-02-28 19:23:05,683 INFO    SenderThread:45815 [sender.py:send_run():944] updated run: 7kg94k0m
+2023-02-28 19:23:05,684 DEBUG   SenderThread:45815 [sender.py:send_request():363] send_request: stop_status
+2023-02-28 19:23:05,871 INFO    Thread-17 :45815 [dir_watcher.py:_on_file_modified():292] file/dir modified: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files/conda-environment.yaml
+2023-02-28 19:23:05,871 INFO    Thread-17 :45815 [dir_watcher.py:_on_file_modified():292] file/dir modified: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files/config.yaml
+2023-02-28 19:23:05,871 INFO    Thread-17 :45815 [dir_watcher.py:_on_file_created():275] file/dir created: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files/wandb-metadata.json
+2023-02-28 19:23:06,044 INFO    wandb-upload_0:45815 [upload_job.py:push():138] Uploaded file /var/folders/8q/yjgzft41043gt_l8bqcfnzn40000gn/T/tmp9t6dfwqkwandb/q951l5do-wandb-metadata.json
+2023-02-28 19:23:06,873 INFO    Thread-17 :45815 [dir_watcher.py:_on_file_created():275] file/dir created: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files/output.log
+2023-02-28 19:23:07,930 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:08,879 INFO    Thread-17 :45815 [dir_watcher.py:_on_file_modified():292] file/dir modified: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files/output.log
+2023-02-28 19:23:12,953 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:17,968 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:22,993 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:28,013 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:33,041 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:34,006 INFO    Thread-17 :45815 [dir_watcher.py:_on_file_modified():292] file/dir modified: /Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/wandb/run-20230228_192302-7kg94k0m/files/config.yaml
+2023-02-28 19:23:38,326 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:43,348 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:48,364 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:53,382 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:23:58,398 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:02,950 DEBUG   SystemMonitor:45815 [system_monitor.py:_start():130] Starting system metrics aggregation loop
+2023-02-28 19:24:02,956 DEBUG   SenderThread:45815 [sender.py:send():336] send: stats
+2023-02-28 19:24:03,961 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:08,984 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:14,006 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:19,026 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:24,049 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:29,064 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:32,961 DEBUG   SenderThread:45815 [sender.py:send():336] send: stats
+2023-02-28 19:24:34,968 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:39,988 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:45,002 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:50,024 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:24:55,043 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:00,062 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:02,965 DEBUG   SenderThread:45815 [sender.py:send():336] send: stats
+2023-02-28 19:25:05,983 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:10,997 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:16,017 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:21,041 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:26,051 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:31,064 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:32,968 DEBUG   SenderThread:45815 [sender.py:send():336] send: stats
+2023-02-28 19:25:36,983 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:41,994 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:47,013 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:52,035 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:25:57,054 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:26:02,074 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:26:02,971 DEBUG   SenderThread:45815 [sender.py:send():336] send: stats
+2023-02-28 19:26:07,992 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
+2023-02-28 19:26:13,013 DEBUG   HandlerThread:45815 [handler.py:handle_request():144] handle_request: status_report
