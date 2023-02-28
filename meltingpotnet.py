@@ -141,20 +141,22 @@ class Perception(nn.Module):
         super().__init__()
         if mlp:
             self.percept = nn.Sequential(
-                nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
+                nn.Linear(input_dim[-1] * input_dim[1] * input_dim[2], 256),
                 nn.ReLU(),
-                nn.Linear(64, d),
+                # nn.Linear(256, 256),
+                # nn.ReLU(),
+                nn.Linear(256, d),
                 nn.ReLU())
         else:
             self.percept = nn.Sequential(
-                nn.Conv2d(3, 16, kernel_size=8, stride=4),
+                nn.Conv2d(3, 16, kernel_size=5, stride=3),
                 nn.ReLU(),
-                nn.Conv2d(16, 32, kernel_size=5, stride=4),
+                nn.Conv2d(16, 32, kernel_size=5, stride=3),
                 nn.ReLU(),
                 nn.modules.Flatten(),
-                nn.Linear(32 * 8 * 8, d),
+                # nn.Linear(32 * 9 * 9, d),
+                nn.Linear(32 * 16 * 16, d),
                 nn.ReLU())
-
     def forward(self, x):
         return self.percept(x)
 

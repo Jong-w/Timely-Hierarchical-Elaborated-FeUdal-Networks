@@ -1,35 +1,49 @@
 import argparse
 import torch
-import cv2
 
+import numpy as np
 from utils import make_envs, take_action, init_obj
 from meltingpotnet import MPnets, mp_loss
 from storage import Storage
 from logger import Logger
 
+import wandb
 
-parser = argparse.ArgumentParser(description='MPnet')
+parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
-parser.add_argument('--lr', type=float, default=0.0005,
-                    help='learning rate')                                       # 'MiniGrid-LockedRoom-v0','MiniGrid-RedBlueDoors-6x6-v0' 'MiniGrid-LockedRoom-v0'
+parser.add_argument('--lr', type=float, default=1e-8,
+                    help='learning rate')
 parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
-parser.add_argument('--num-steps', type=int, default=400,
+# parser.add_argument('--num-steps', type=int, default=400,
+#                     help='number of steps the agent takes before updating')
+parser.add_argument('--num-steps', type=int, default=100,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e8), #int(1e8)
+parser.add_argument('--max-steps', type=int, default=int(1e6),
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
-parser.add_argument('--grad-clip', type=float, default=5.,
+# parser.add_argument('--grad-clip', type=float, default=5.,
+#                     help='Gradient clipping (recommended).')
+parser.add_argument('--grad-clip', type=float, default=1.,
                     help='Gradient clipping (recommended).')
-parser.add_argument('--entropy-coef', type=float, default=0.01,
+# parser.add_argument('--entropy-coef', type=float, default=0.1,
+#                     help='Entropy coefficient to encourage exploration.')
+parser.add_argument('--entropy-coef', type=float, default=1e-5,
                     help='Entropy coefficient to encourage exploration.')
-parser.add_argument('--mlp', type=int, default=0,
+parser.add_argument('--mlp', type=int, default=1,
                     help='toggle to feedforward ML architecture')
 parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
+parser.add_argument('--reward-reg', type=int, default=1000,
+                    help='reward regulaizer')
+parser.add_argument('--env-max-step', type=int, default=100,
+                    help='max step for environment typically same as reward-reg')
+
+parser.add_argument('--grid-size', type=int, default=200,
+                    help='setting grid size')
 
 # SPECIFIC FEUDALNET PARAMETERS
 parser.add_argument('--time-horizon_manager', type=int, default=10,
@@ -40,8 +54,12 @@ parser.add_argument('--hidden-dim-manager', type=int, default=68,
                     help='Hidden dim (d)')
 parser.add_argument('--hidden-dim-supervisor', type=int, default=136,
                     help='Hidden dim (n)')
-parser.add_argument('--hidden-dim-worker', type=int, default=16,
+parser.add_argument('--hidden-dim-worker', type=int, default=32,
                     help='Hidden dim for worker (k)')
+# parser.add_argument('--gamma-w', type=float, default=0.9,
+#                     help="discount factor worker")
+# parser.add_argument('--gamma-m', type=float, default=0.99,
+#                     help="discount factor manager")
 parser.add_argument('--gamma-w', type=float, default=0.9,
                     help="discount factor worker")
 parser.add_argument('--gamma-s', type=float, default=0.95,
@@ -52,11 +70,11 @@ parser.add_argument('--alpha', type=float, default=0.5,
                     help='Intrinsic reward coefficient in [0, 1]')
 parser.add_argument('--eps', type=float, default=float(1),
                     help='Random Gausian goal for exploration')
-# 0.99
 parser.add_argument('--dilation_manager', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 parser.add_argument('--dilation_supervisor', type=int, default=5,
                     help='Dilation parameter for manager LSTM.')
+
 
 # EXPERIMENT RELATED PARAMS
 parser.add_argument('--run-name', type=str, default='baseline',
@@ -69,11 +87,10 @@ args = parser.parse_args()
 
 def experiment(args):
 
-    save_steps = list(torch.arange(0, int(args.max_steps),
-                                   int(args.max_steps) // 10).numpy())
+    save_steps = list(torch.arange(0, int(args.max_steps),int(args.max_steps) // 10).numpy())
 
     # logger = Logger(args.run_name, args)
-    logger = Logger(args.env_name, 'MPnets_64', args)
+    logger = Logger(args.env_name, "Feudal_Nets", args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
     device = torch.device("cuda" if cuda_is_available else "cpu")
     args.device = device
@@ -83,7 +100,7 @@ def experiment(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-    envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
+    envs = make_envs(args.env_name, args.num_workers, args.whole, args.reward_reg, args.env_max_step, args.grid_size)
     MPnet = MPnets(
         num_workers=args.num_workers,
         input_dim=envs.observation_space.shape,
@@ -101,22 +118,23 @@ def experiment(args):
         whole=args.whole)
 
     #optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr, alpha=0.99, eps=1e-5)
-    #optimizer = torch.optim.Adam(MPnet.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-05)
-    optimizer = torch.optim.NAdam(MPnet.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-05, weight_decay=0, momentum_decay=0.004,foreach=None)
+    optimizer = torch.optim.NAdam(MPnet.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-05, weight_decay=0, momentum_decay=0.004, foreach=None)
 
-    goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
+    goals_m, states_m, goals_s, states_s, masks  = MPnet.init_obj()
 
     x = envs.reset()
     step = 0
     eps = args.eps
     while step < args.max_steps:
-        # Detaching LSTMs and goals_m
+
+        # Detaching LSTMs and goals
         MPnet.repackage_hidden()
         goals_m = [g.detach() for g in goals_m]
         goals_s = [g.detach() for g in goals_s]
         storage = Storage(size=args.num_steps,
                           keys=['r', 'r_i', 'v_w', 'v_s', 'v_m', 'logp', 'entropy',
                                 's_goal_cos', 'g_goal_cos','mask', 'ret_w', 'ret_s', 'ret_m', 'adv_m', 'adv_w'])
+
         if eps > 0.01:
             eps = eps * 0.999
         else:
@@ -148,19 +166,24 @@ def experiment(args):
                 'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s, masks),
                 'm': mask
             })
+            for _i in range(len(done)):
+                if done[_i]:
+                    wandb.log(
+                    {"training/episode/reward": info[_i]['returns/episodic_reward'],
+                     "training/episode/length": info[_i]['returns/episodic_length']})
 
             step += args.num_workers
 
         with torch.no_grad():
             _, _, _, next_v_m, _, _, next_v_s, next_v_w = MPnet(
                 x, goals_m, states_m, goals_s, states_s, mask, eps,  save=False)
-
             next_v_m = next_v_m.detach()
             next_v_s = next_v_s.detach()
             next_v_w = next_v_w.detach()
 
         optimizer.zero_grad()
         loss, loss_dict = mp_loss(storage, next_v_m, next_v_s, next_v_w, args, eps)
+        wandb.log(loss_dict)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(MPnet.parameters(), args.grad_clip)
         optimizer.step()
@@ -175,22 +198,102 @@ def experiment(args):
                 f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
             save_steps.pop(0)
 
+            print('logger')
+            import logging
+
+            max_step_trueepi = 10
+            step_trueepi = 0
+            _total_rewards = []
+            _total_steps = []
+            _step = 0
+
+            # take mean of 100
+            while True:
+                # Detaching LSTMs and goals
+                MPnet.repackage_hidden()
+                goals_m = [g.detach() for g in goals_m]
+                goals_s = [g.detach() for g in goals_s]
+
+                x = envs.reset()
+                action_dist, goals_m, states_m, value_m, goals_s, states_s, value_s, value_w \
+                    = MPnet(x, goals_m, states_m, goals_s, states_s, masks[-1], eps=eps)
+                action_dist_ = action_dist.tolist()
+                action_dist_max = np.array([np.double(np.array(action_dist_[i]==np.max(action_dist_[i]))) for i in range(len(action_dist_))])
+
+                # Take a step, log the info, get the next state
+                action, logp, entropy = take_action(torch.asarray(action_dist_max))
+                x, reward, done, info = envs.step(action)
+
+                for episode_dict in info:
+                    if episode_dict['returns/episodic_reward'] is not None:
+                        reward = episode_dict['returns/episodic_reward']
+                        length = episode_dict['returns/episodic_length']
+                        _total_rewards.append(reward)
+                        _total_steps.append(length)
+                        logging.info(f"<<<>>> TRUE <<<>>> ep = {step_trueepi+1} | reward = {reward} | length = {length}")
+                        wandb.log(
+                            {"test/episode/reward": reward, "test/episode/length": length})
+                        step_trueepi += 1
+
+                _step += args.num_workers
+                if step_trueepi>max_step_trueepi or _step>(args.num_workers)*args.env_max_step*max_step_trueepi:
+                    wandb.log({"test/mean/reward": np.mean(_total_rewards), "test/mean/length": np.mean(_total_steps)})
+                    break
+
+                import gym
+                import cv2
+                _env = gym.make(args.env_name)
+                _env.reset()
+                frame = 0
+                while True:
+                    # Detaching LSTMs and goals
+                    MPnet.repackage_hidden()
+                    goals_m = [g.detach() for g in goals_m]
+                    goals_s = [g.detach() for g in goals_s]
+
+                    x = envs.reset()
+                    action_dist, goals_m, states_m, value_m, goals_s, states_s, value_s, value_w \
+                        = MPnet(x, goals_m, states_m, goals_s, states_s, masks[-1], eps=eps)
+                    action_dist_ = action_dist.tolist()
+                    action_dist_max = np.array([np.double(np.array(action_dist_[i] == np.max(action_dist_[i]))) for i in
+                                                range(len(action_dist_))])
+
+                    # Take a step, log the info, get the next state
+                    action, logp, entropy = take_action(torch.asarray(action_dist_max))
+                    x, reward, done, info = envs.step(action)
+                    _x, _reward, _done, _info = _env.step(action[0])
+                    image = _env.render('human')
+                    cv2.imwrite('frame' + str(frame) + '.png', image)
+
+                    frame += 1
+                    print(frame)
+
+                    if _done:
+                        break
+
+                # log metrics to wandb
     envs.close()
     torch.save({
         'model': MPnet.state_dict(),
         'args': args,
         'processor_mean': MPnet.preprocessor.rms.mean,
         'optim': optimizer.state_dict()},
-        f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
-
+        f'models/{args.env_name}_{args.run_name}_steps={step}.pt')
 
 def main(args):
     run_name = args.run_name
+    lr_starter = 1e-6
 
-    for seed in range(2):
+    for seed in range(3):
+        args.lr *= 10
+        wandb.init(project="mpnets",
+        config=args.__dict__
+        )
         args.seed = seed
         args.run_name = f"{run_name}_seed={seed}"
+        wandb.run.name = f"fun_seed={seed}"
         experiment(args)
+        wandb.finish()
 
 
 if __name__ == '__main__':
