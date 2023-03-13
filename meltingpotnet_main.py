@@ -37,7 +37,7 @@ parser.add_argument('--mlp', type=int, default=1,
                     help='toggle to feedforward ML architecture')
 parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
-parser.add_argument('--reward-reg', type=int, default=1000,
+parser.add_argument('--reward-reg', type=int, default=1,
                     help='reward regulaizer')
 parser.add_argument('--env-max-step', type=int, default=100,
                     help='max step for environment typically same as reward-reg')
@@ -107,7 +107,7 @@ def experiment(args):
         hidden_dim_manager=args.hidden_dim_manager,
         hidden_dim_supervisor=args.hidden_dim_supervisor,
         hidden_dim_worker=args.hidden_dim_worker,
-        n_actions=envs.single_action_space.n,
+        n_actions=3,
         time_horizon_manager=args.time_horizon_manager,
         time_horizon_supervisor=args.time_horizon_supervisor,
         dilation_manager=args.dilation_manager,
@@ -166,11 +166,15 @@ def experiment(args):
                 'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s, masks),
                 'm': mask
             })
+            reward_list = []
+            length_list = []
             for _i in range(len(done)):
                 if done[_i]:
-                    wandb.log(
-                    {"training/episode/reward": info[_i]['returns/episodic_reward'],
-                     "training/episode/length": info[_i]['returns/episodic_length']})
+                    reward_list.append(info[_i]['returns/episodic_reward'])
+                    length_list.append(info[_i]['returns/episodic_length'])
+            wandb.log(
+                {"training/episode/reward": np.mean(reward_list),
+                 "training/episode/length": np.mean(length_list)})
 
             step += args.num_workers
 
@@ -198,80 +202,7 @@ def experiment(args):
                 f'models/{args.env_name}_{args.run_name}_MPnetv2_steps={step}.pt')
             save_steps.pop(0)
 
-            print('logger')
-            import logging
 
-            max_step_trueepi = 10
-            step_trueepi = 0
-            _total_rewards = []
-            _total_steps = []
-            _step = 0
-
-            # take mean of 100
-            while True:
-                # Detaching LSTMs and goals
-                MPnet.repackage_hidden()
-                goals_m = [g.detach() for g in goals_m]
-                goals_s = [g.detach() for g in goals_s]
-
-                x = envs.reset()
-                action_dist, goals_m, states_m, value_m, goals_s, states_s, value_s, value_w \
-                    = MPnet(x, goals_m, states_m, goals_s, states_s, masks[-1], eps=eps)
-                action_dist_ = action_dist.tolist()
-                action_dist_max = np.array([np.double(np.array(action_dist_[i]==np.max(action_dist_[i]))) for i in range(len(action_dist_))])
-
-                # Take a step, log the info, get the next state
-                action, logp, entropy = take_action(torch.asarray(action_dist_max))
-                x, reward, done, info = envs.step(action)
-
-                for episode_dict in info:
-                    if episode_dict['returns/episodic_reward'] is not None:
-                        reward = episode_dict['returns/episodic_reward']
-                        length = episode_dict['returns/episodic_length']
-                        _total_rewards.append(reward)
-                        _total_steps.append(length)
-                        logging.info(f"<<<>>> TRUE <<<>>> ep = {step_trueepi+1} | reward = {reward} | length = {length}")
-                        wandb.log(
-                            {"test/episode/reward": reward, "test/episode/length": length})
-                        step_trueepi += 1
-
-                _step += args.num_workers
-                if step_trueepi>max_step_trueepi or _step>(args.num_workers)*args.env_max_step*max_step_trueepi:
-                    wandb.log({"test/mean/reward": np.mean(_total_rewards), "test/mean/length": np.mean(_total_steps)})
-                    break
-
-                import gym
-                import cv2
-                _env = gym.make(args.env_name)
-                _env.reset()
-                frame = 0
-                while True:
-                    # Detaching LSTMs and goals
-                    MPnet.repackage_hidden()
-                    goals_m = [g.detach() for g in goals_m]
-                    goals_s = [g.detach() for g in goals_s]
-
-                    x = envs.reset()
-                    action_dist, goals_m, states_m, value_m, goals_s, states_s, value_s, value_w \
-                        = MPnet(x, goals_m, states_m, goals_s, states_s, masks[-1], eps=eps)
-                    action_dist_ = action_dist.tolist()
-                    action_dist_max = np.array([np.double(np.array(action_dist_[i] == np.max(action_dist_[i]))) for i in
-                                                range(len(action_dist_))])
-
-                    # Take a step, log the info, get the next state
-                    action, logp, entropy = take_action(torch.asarray(action_dist_max))
-                    x, reward, done, info = envs.step(action)
-                    _x, _reward, _done, _info = _env.step(action[0])
-                    image = _env.render('human')
-                    cv2.imwrite('frame' + str(frame) + '.png', image)
-
-                    frame += 1
-                    print(frame)
-
-                    if _done:
-                        break
-
-                # log metrics to wandb
     envs.close()
     torch.save({
         'model': MPnet.state_dict(),

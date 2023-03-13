@@ -6,10 +6,10 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 class Logger:
-    def __init__(self, run_name, net_name, args):
+    def __init__(self, run_name, args):
         dt = datetime.now()
         # didn't figure out how to easily remove seconds from datetime
-        self.log_name = 'logs/' + run_name + "["+ net_name+"]"
+        self.log_name = 'logs/'
         self.start_time = time.time()
         self.n_eps = 0
 

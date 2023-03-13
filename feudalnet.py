@@ -16,10 +16,9 @@ class FeudalNetwork(nn.Module):
                  n_actions,
                  time_horizon=10,
                  dilation=10,
-                 device='cuda',
+                 device='cpu',
                  mlp=False,
-                 args=None,
-                 whole=1):
+                 args=None):
         """naming convention inside the FeudalNetwork is selected
         to match paper variable naming convention.
         """
@@ -34,7 +33,7 @@ class FeudalNetwork(nn.Module):
         self.device = device
 
         self.preprocessor = Preprocessor(input_dim, device, mlp)
-        self.percept = Perception(input_dim, self.d, mlp)
+        self.percept = Perception(input_dim[-1], self.d, mlp)
         self.manager = Manager(self.c, self.d, self.r, args, device)
         self.worker = Worker(self.b, self.c, self.d, self.k, n_actions, device)
 
@@ -115,26 +114,26 @@ class FeudalNetwork(nn.Module):
 class Perception(nn.Module):
     def __init__(self, input_dim, d, mlp=False):
         super().__init__()
+
         if mlp:
             self.percept = nn.Sequential(
-                nn.Linear(input_dim[-1] * input_dim[1] * input_dim[2], 256),
+                nn.Linear(input_dim, 64),
                 nn.ReLU(),
-                # nn.Linear(256, 256),
-                # nn.ReLU(),
-                nn.Linear(256, d),
+                nn.Linear(64, d),
                 nn.ReLU())
         else:
             self.percept = nn.Sequential(
-                nn.Conv2d(3, 16, kernel_size=5, stride=3),
+                nn.Conv2d(3, 16, kernel_size=8, stride=4),
                 nn.ReLU(),
-                nn.Conv2d(16, 32, kernel_size=5, stride=3),
+                nn.Conv2d(16, 32, kernel_size=4, stride=2),
                 nn.ReLU(),
                 nn.modules.Flatten(),
-                # nn.Linear(32 * 9 * 9, d),
-                nn.Linear(32 * 16 * 16, d),
+                nn.Linear(32*9*9, d),
                 nn.ReLU())
+
     def forward(self, x):
         return self.percept(x)
+
 
 class Manager(nn.Module):
     def __init__(self, c, d, r, args, device):
@@ -189,7 +188,6 @@ class Manager(nn.Module):
         cosine_dist = d_cos(states[t + self.c] - states[t], goals[t])
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
         return cosine_dist
-
 
 
 class Worker(nn.Module):
@@ -313,7 +311,7 @@ def feudal_loss(storage, next_v_m, next_v_w, args):
              'logp', 'entropy', 's_goal_cos'])
 
     # Calculate advantages, size B x T
-    advantage_w = ret_w - value_w + args.alpha * rewards_intrinsic
+    advantage_w = ret_w + args.alpha * rewards_intrinsic - value_w
     advantage_m = ret_m - value_m
 
     loss_worker = (logps * advantage_w.detach()).mean()
@@ -325,7 +323,8 @@ def feudal_loss(storage, next_v_m, next_v_w, args):
 
     entropy = entropy.mean()
 
-    loss = (value_w_loss - loss_worker) + (value_m_loss - loss_manager) - args.entropy_coef * entropy
+    loss = - loss_worker - loss_manager + value_w_loss + value_m_loss \
+        - args.entropy_coef * entropy
 
     return loss, {'loss/total_fun_loss': loss.item(),
                   'loss/worker': loss_worker.item(),
