@@ -5,9 +5,52 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dee29e24-2d77-41ca-860e-78d8a45421f9" name="Changes" comment="delete">
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677686646.Dongjaeui-noteubug.local.7026.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wandb/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea 2/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea 2/Fun_Hierarchy.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea 2/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea 2/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea 2/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea 2/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea 2/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea 2/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea 2/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/feudalnet_main2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets].log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1677737542.Dongjaenoteubug.Dlink.43018.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678278256.Dongjaeui-noteubug.local.11862.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678278386.Dongjaeui-noteubug.local.12096.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_FeudalNets_step=3200.pt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/debug-cli.dongjaekim.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/latest-run" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230302_151218-4xkno16l/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230302_151218-4xkno16l/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230302_151218-4xkno16l/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230302_151218-4xkno16l/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230302_151218-4xkno16l/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230302_151218-4xkno16l/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230302_151218-4xkno16l/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230302_151218-4xkno16l/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230302_151218-4xkno16l/run-4xkno16l.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212415-roc96s7j/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212415-roc96s7j/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212415-roc96s7j/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212415-roc96s7j/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212415-roc96s7j/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212415-roc96s7j/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212415-roc96s7j/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212415-roc96s7j/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212415-roc96s7j/run-roc96s7j.wandb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212625-1rwsx49d/files/conda-environment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212625-1rwsx49d/files/config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212625-1rwsx49d/files/output.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212625-1rwsx49d/files/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212625-1rwsx49d/files/wandb-metadata.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212625-1rwsx49d/files/wandb-summary.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212625-1rwsx49d/logs/debug-internal.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212625-1rwsx49d/logs/debug.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wandb/run-20230308_212625-1rwsx49d/run-1rwsx49d.wandb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/feudalnet_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/feudalnet_main.py" afterDir="false" />
     </list>
@@ -15,6 +58,13 @@
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="PUSH_TAGS">
@@ -60,8 +110,14 @@
     &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/logs&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;org.intellij.sdk.settings.AppSettingsConfigurable&quot;
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.intellij.sdk.settings.AppSettingsConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -82,6 +138,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/feudalnet.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -103,7 +160,30 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/feudalnet_main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="feudalnet_main2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Fun_Hierarchy" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/feudalnet_main2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -124,6 +204,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -136,6 +217,7 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.feudalnet_main" />
+        <item itemvalue="Python.feudalnet_main2" />
         <item itemvalue="Python.utils" />
         <item itemvalue="Python.feudalnet" />
       </list>
@@ -144,11 +226,12 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="c31312de-d295-439c-8328-68478d93f209" name="Changes" comment="" />
       <created>1676881992384</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1676881992384</updated>
+      <workItem from="1678679490327" duration="1052000" />
+      <workItem from="1678791606936" duration="4000" />
     </task>
     <task id="LOCAL-00001" summary="update">
       <created>1676950873014</created>
@@ -255,8 +338,18 @@
       <option name="project" value="LOCAL" />
       <updated>1677737431450</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="delete">
+      <created>1677737518495</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1677737518495</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -264,6 +357,11 @@
         <entry key="MAIN">
           <value>
             <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="true" />
+                </map>
+              </option>
               <option name="FILTERS">
                 <map>
                   <entry key="branch">
@@ -298,6 +396,36 @@
           <url>file://$PROJECT_DIR$/feudalnet_main.py</url>
           <line>234</line>
           <option name="timeStamp" value="127" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/feudalnet_main.py</url>
+          <line>184</line>
+          <option name="timeStamp" value="130" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/feudalnet_main.py</url>
+          <line>224</line>
+          <option name="timeStamp" value="131" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/feudalnet_main.py</url>
+          <line>206</line>
+          <option name="timeStamp" value="132" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/feudalnet_main2.py</url>
+          <line>207</line>
+          <option name="timeStamp" value="134" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/feudalnet_main2.py</url>
+          <line>223</line>
+          <option name="timeStamp" value="135" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/feudalnet_main.py</url>
+          <line>221</line>
+          <option name="timeStamp" value="136" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
