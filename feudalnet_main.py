@@ -6,6 +6,7 @@ from feudalnet import FeudalNetwork, feudal_loss
 from storage import Storage
 from logger import Logger
 
+import wandb
 
 parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
@@ -89,6 +90,8 @@ def experiment(args):
 
     x = envs.reset()
     step = 0
+
+    step_test = 0
     while step < args.max_steps:
 
         # Detaching LSTMs and goals
@@ -122,6 +125,12 @@ def experiment(args):
                 's_goal_cos': feudalnet.state_goal_cosine(states, goals, masks),
                 'm': mask
             })
+            for _i in range(len(done)):
+                if done[_i]:
+                    wandb.log(
+                    {"training/episode/reward": info[_i]['returns/episodic_reward'],
+                     "training/episode/length": info[_i]['returns/episodic_length']})
+
 
             step += args.num_workers
 
@@ -133,6 +142,7 @@ def experiment(args):
 
         optimizer.zero_grad()
         loss, loss_dict = feudal_loss(storage, next_v_m, next_v_w, args)
+        wandb.log(loss_dict)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(feudalnet.parameters(), args.grad_clip)
         optimizer.step()
@@ -147,6 +157,53 @@ def experiment(args):
                 f'models/{args.env_name}_{args.run_name}_step={step}.pt')
             save_steps.pop(0)
 
+        import logging
+        import numpy as np
+        np.random.seed(0)
+        from utils import atari_wrapper
+
+        import gym
+        _env = gym.make(args.env_name)
+        # wrappered
+        _env_wrapped = atari_wrapper(_env)
+        _x_wrapped = _env_wrapped.reset()
+        x = np.array([_x_wrapped for _ in range(args.num_workers)])
+        goals_test, states_test, masks_test = feudalnet.init_obj()
+
+        frame = 0
+        imset = []
+        while True:
+            # Detaching LSTMs and goals
+            feudalnet.repackage_hidden()
+            goals_test = [g.detach() for g in goals_test]
+
+            action_dist, goals_test, states_test, value_m, value_w \
+                = feudalnet(x, goals_test, states_test, masks_test[-1])
+            actiondist = action_dist.tolist()
+            action_dist_max = np.array(
+                [np.double(np.array(actiondist[i] == np.max(actiondist[i]))) for i in range(len(actiondist))])
+
+            # Take a step, log the info, get the next state
+            action, logp, entropy = take_action(torch.asarray(action_dist_max))
+            _x_wrapped, reward, done, info = _env_wrapped.step(action[0])
+            x = np.array([_x_wrapped for _ in range(args.num_workers)])
+            image = _env_wrapped.render('rgb_array')
+            imset.append(image)
+
+            frame += 1
+            # print(frame)
+
+            if done:
+                reward = info['returns/episodic_reward']
+                length = info['returns/episodic_length']
+                wandb.log(
+                    {"test/episode/reward": reward, "test/episode/length": length},step=step_test)
+                logging.info(
+                    f"<<<>>> TRUE <<<>>> ep =  reward = {reward} | length = {frame}")
+                step_test += 1
+
+                break
+
     envs.close()
     torch.save({
         'model': feudalnet.state_dict(),
@@ -159,10 +216,13 @@ def experiment(args):
 def main(args):
     run_name = args.run_name
 
+    wandb.init(project="fun_sequest")
     for seed in range(2):
+        wandb.run.name = f"sequest_runseed={seed}"
         args.seed = seed
         args.run_name = f"{run_name}_seed={seed}"
         experiment(args)
+        wandb.finish()
 
 
 if __name__ == '__main__':
