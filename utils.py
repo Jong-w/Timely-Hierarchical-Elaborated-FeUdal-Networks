@@ -30,8 +30,7 @@ class ReturnWrapper(gym.Wrapper):
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
-        # TODO: reward가 왜 0또는 1이 아니지?
-        # reward = np.ceil(reward)
+        reward=reward*100-self.steps-1
 
         self.total_rewards += reward
         self.steps += 1
@@ -60,7 +59,7 @@ class ReturnWrapper_wargs(ReturnWrapper):
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
         # reward = np.ceil(reward)*self.multiplier/(self.steps+1)
-        reward *= self.multiplier
+        reward = reward * self.multiplier - 1
         self.total_rewards += reward
         self.steps += 1
         if done:
