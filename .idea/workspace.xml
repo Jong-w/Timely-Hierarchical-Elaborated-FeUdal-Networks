@@ -4,30 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dee29e24-2d77-41ca-860e-78d8a45421f9" name="Changes" comment="delete">
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678808350.Dongjaeui-noteubug.local.9459.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678808728.Dongjaeui-noteubug.local.9912.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678808747.Dongjaeui-noteubug.local.9986.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678808790.Dongjaeui-noteubug.local.10081.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678808819.Dongjaeui-noteubug.local.10169.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678808874.Dongjaeui-noteubug.local.10278.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678832197.Dongjaeui-noteubug.local.12687.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678832235.Dongjaeui-noteubug.local.12771.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678832715.Dongjaeui-noteubug.local.13190.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678832737.Dongjaeui-noteubug.local.13296.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678833001.Dongjaeui-noteubug.local.13561.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678833034.Dongjaeui-noteubug.local.13646.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678833120.Dongjaeui-noteubug.local.13775.0" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feudalnet_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/feudalnet_main.py" afterDir="false" />
+    <list default="true" id="9822342e-bdb6-447f-97ee-15165a6d1e17" name="Changes" comment="delete">
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678952956.DESKTOP-LTTJJ7Q.4284.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678953099.DESKTOP-LTTJJ7Q.9160.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678953265.DESKTOP-LTTJJ7Q.15440.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678953759.DESKTOP-LTTJJ7Q.15440.1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678954245.DESKTOP-LTTJJ7Q.15440.2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678959713.DESKTOP-LTTJJ7Q.16124.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678965765.DESKTOP-LTTJJ7Q.11952.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678967138.DESKTOP-LTTJJ7Q.4456.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678967759.DESKTOP-LTTJJ7Q.11160.0" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets]/events.out.tfevents.1678968301.DESKTOP-LTTJJ7Q.15328.0" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets].log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets].log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_FeudalNets_step=3200.pt" beforeDir="false" afterPath="$PROJECT_DIR$/models/MiniGrid-FourRooms-v0_baseline_FeudalNets_step=3200.pt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wandb/debug-cli.dongjaekim.log" beforeDir="false" afterPath="$PROJECT_DIR$/wandb/debug-cli.dongjaekim.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wandb/debug-internal.log" beforeDir="false" afterPath="$PROJECT_DIR$/wandb/debug-internal.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wandb/debug.log" beforeDir="false" afterPath="$PROJECT_DIR$/wandb/debug.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wandb/latest-run" beforeDir="false" afterPath="$PROJECT_DIR$/wandb/latest-run" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,27 +69,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "/Users/dongjaekim/Library/CloudStorage/GoogleDrive-dongjae.k.kim@gmail.com/내 드라이브/연구/fun/Fun_Hierarchy/logs",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;G:/내 드라이브/연구/fun/fourroom_version/MeltingpotNets_pytorch&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="G:\내 드라이브\연구\fun\fourroom_version\MeltingpotNets_pytorch" />
       <recent name="$PROJECT_DIR$/logs" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.feudalnet_main">
+  <component name="RunManager" selected="Python.feudalnet_main_3080">
     <configuration name="feudalnet" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Fun_Hierarchy" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -123,29 +113,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="feudalnet_main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-      <module name="MeltingpotNets_pytorch" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/opt/anaconda3/envs/Fun_Hierarchy_atari/bin/python" />
-      <option name="SDK_NAME" value="Fun_Hierarchy_atari" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/feudalnet_main.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="feudalnet_main2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Fun_Hierarchy" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -160,6 +127,27 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/feudalnet_main2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="feudalnet_main_3080" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Fun_Hierarchy" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/feudalnet_main_3080.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -192,6 +180,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.feudalnet_main_3080" />
         <item itemvalue="Python.feudalnet_main2" />
         <item itemvalue="Python.utils" />
         <item itemvalue="Python.feudalnet" />
@@ -381,16 +370,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/feudalnet_main2.py</url>
-          <line>207</line>
-          <option name="timeStamp" value="134" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/feudalnet_main2.py</url>
-          <line>223</line>
-          <option name="timeStamp" value="135" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/utils.py</url>
           <line>32</line>
