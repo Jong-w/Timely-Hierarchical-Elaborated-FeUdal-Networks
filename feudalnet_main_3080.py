@@ -109,7 +109,6 @@ def experiment(args):
 
     optimizer = torch.optim.RMSprop(feudalnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)
-    envs.single_action_space.n
     goals, states, masks = feudalnet.init_obj()
     goals_test, states_test, masks_test = feudalnet.init_obj()
 
@@ -195,9 +194,8 @@ def experiment(args):
                 import gym
                 _env = gym.make(args.env_name)
                 # wrappered
-                _env_wrapped = flatten_fullview_wrapperWrapper(_env,reward_reg=args.reward_reg, env_max_step=args.env_max_step,
-                                                               grid_size=args.grid_size)
-                _env_wrapped =ReseedWrapper(_env_wrapped, seeds=[random_seeder])
+                _env_wrapped = flatten_fullview_wrapperWrapper(_env,reward_reg=args.reward_reg, env_max_step=args.env_max_step)
+                _env_wrapped =ReseedWrapper(_env_wrapped, seeds=[1212])
                 _x_wrapped = _env_wrapped.reset()
                 x = np.array([_x_wrapped for _ in range(args.num_workers)])
                 goals_test, states_test, masks_test = feudalnet.init_obj()

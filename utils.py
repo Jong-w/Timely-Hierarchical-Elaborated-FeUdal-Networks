@@ -29,8 +29,11 @@ class ReturnWrapper(gym.Wrapper):
         self.steps = 0
 
     def step(self, action):
-        obs, reward, done, info = self.env.step(action)
+        obs, reward, done, truncated, info = self.env.step(action)
         reward=reward*100-self.steps-1
+
+        if np.any([done, truncated]):
+            done = True
 
         self.total_rewards += reward
         self.steps += 1
@@ -57,11 +60,15 @@ class ReturnWrapper_wargs(ReturnWrapper):
         self.multiplier = reward_reg
 
     def step(self, action):
-        obs, reward, done, info = self.env.step(action)
+        obs, reward, done, truncated, info = self.env.step(action)
         # reward = np.ceil(reward)*self.multiplier/(self.steps+1)
         reward = reward * self.multiplier - 1
         self.total_rewards += reward
         self.steps += 1
+
+        if np.any([done, truncated]):
+            done = True
+
         if done:
             info['returns/episodic_reward'] = self.total_rewards
             info['returns/episodic_length'] = self.steps
@@ -72,6 +79,9 @@ class ReturnWrapper_wargs(ReturnWrapper):
             info['returns/episodic_length'] = None
 
         return obs, reward, done, info
+    def reset(self, *, seed=0, options=None):
+        obs = self.env.reset(seed=seed, options=options)
+        return obs
 
 
 class FlattenWrapper(gym.core.ObservationWrapper):
@@ -119,13 +129,8 @@ class FlattenWrapper(gym.core.ObservationWrapper):
 
         return full_grid
 
-def flatten_fullview_wrapperWrapper(env, reward_reg=5000, env_max_step=5000, grid_size=19):
+def flatten_fullview_wrapperWrapper(env, reward_reg=5000, env_max_step=5000):
     env.max_steps = env_max_step
-    env.grid_size = grid_size
-    env.grid.__init__(grid_size, grid_size)
-    env._agent_default_pos = None
-    env._goal_default_pos = None
-    env._gen_grid(grid_size, grid_size)
     env = FullyObsWrapper(env)
     env = FlattenWrapper(env)
     env = ReturnWrapper_wargs(env, reward_reg=reward_reg)
@@ -167,7 +172,7 @@ def atari_wrapper(env):
 def make_envs(env_name, num_envs, partial=1, reward_reg=5000, env_max_step=5000, grid_size=19):
     env_ = gym.make(env_name)
 
-    wrapper_fn = lambda env: flatten_fullview_wrapperWrapper(env, reward_reg=reward_reg, env_max_step=env_max_step, grid_size=grid_size)
+    wrapper_fn = lambda env: flatten_fullview_wrapperWrapper(env, reward_reg=reward_reg, env_max_step=env_max_step)
     # wrapper_fn = flatten_fullview_wrapper
 
     envs = gym.vector.make(env_name, num_envs, wrappers=wrapper_fn)
