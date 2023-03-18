@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Fun_Hierarchy.iml" filepath="$PROJECT_DIR$/.idea/Fun_Hierarchy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/MeltingpotNets_pytorch.iml" filepath="$PROJECT_DIR$/.idea/MeltingpotNets_pytorch.iml" />
     </modules>
   </component>
 </project>

@@ -32,12 +32,10 @@ class ReturnWrapper(gym.Wrapper):
         obs, reward, done, truncated, info = self.env.step(action)
         reward=reward*100-self.steps-1
 
-        if np.any([done, truncated]):
-            done = True
+        # if np.any([done, truncated]):
+        #     done = True
 
-        self.total_rewards += reward
-        self.steps += 1
-        if done:
+        if done or truncated:
             info['returns/episodic_reward'] = self.total_rewards
             info['returns/episodic_length'] = self.steps
             self.total_rewards = 0
@@ -45,7 +43,8 @@ class ReturnWrapper(gym.Wrapper):
         else:
             info['returns/episodic_reward'] = None
             info['returns/episodic_length'] = None
-        return obs, reward, done, info
+
+        return obs, reward, done, truncated, info
 
 class ReturnWrapper_wargs(ReturnWrapper):
     #######################################################################
@@ -53,23 +52,35 @@ class ReturnWrapper_wargs(ReturnWrapper):
     # Permission given to modify the code as long as you keep this        #
     # declaration at the top                                              #
     #######################################################################
-    def __init__(self, env, reward_reg=5000):
+    def __init__(self, env, reward_reg=5000, max_steps=1000):
         super().__init__(env)
         self.total_rewards = 0
         self.steps = 0
         self.multiplier = reward_reg
+        self.max_steps = max_steps
 
     def step(self, action):
         obs, reward, done, truncated, info = self.env.step(action)
         # reward = np.ceil(reward)*self.multiplier/(self.steps+1)
+
+        # print reward if reward is not 0
+        if reward != 0:
+            reward = 1
         reward = reward * self.multiplier - 1
+        # reward = reward * self.multiplier - 1
         self.total_rewards += reward
         self.steps += 1
 
-        if np.any([done, truncated]):
-            done = True
+        # if np.any([done, truncated]):
+        #     done = True
 
-        if done:
+        #print reward, done, truncated, self.steps in a fancy way
+        # print(f"reward: {reward}, done: {done}, truncated: {truncated}, steps: {self.steps}")
+
+
+        if self.max_steps > self.steps:
+            truncated = False
+        if done or truncated:
             info['returns/episodic_reward'] = self.total_rewards
             info['returns/episodic_length'] = self.steps
             self.total_rewards = 0
@@ -78,10 +89,13 @@ class ReturnWrapper_wargs(ReturnWrapper):
             info['returns/episodic_reward'] = None
             info['returns/episodic_length'] = None
 
-        return obs, reward, done, info
+        return obs, reward, done, truncated, info
     def reset(self, *, seed=0, options=None):
-        obs = self.env.reset(seed=seed, options=options)
-        return obs
+        # super().__init__(env)
+        self.total_rewards = 0
+        self.steps = 0
+        obs, _ = self.env.reset(seed=seed, options=options)
+        return obs, _
 
 
 class FlattenWrapper(gym.core.ObservationWrapper):

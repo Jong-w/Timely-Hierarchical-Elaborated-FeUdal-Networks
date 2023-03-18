@@ -39,7 +39,7 @@ parser.add_argument('--mlp', type=int, default=1,
                     help='toggle to feedforward ML architecture')
 parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
-parser.add_argument('--reward-reg', type=int, default=10000,
+parser.add_argument('--reward-reg', type=int, default=5000,
                     help='reward regulaizer')
 parser.add_argument('--env-max-step', type=int, default=1000,
                     help='max step for environment typically same as reward-reg')
@@ -113,7 +113,7 @@ def experiment(args):
     goals, states, masks = feudalnet.init_obj()
     goals_test, states_test, masks_test = feudalnet.init_obj()
 
-    x = envs.reset()
+    x, _= envs.reset()
     step = 0
     step_t_ep=0
     while step < args.max_steps:
@@ -132,8 +132,21 @@ def experiment(args):
 
             # Take a step, log the info, get the next state
             action, logp, entropy = take_action(action_dist)
-            x, reward, done, info = envs.step(action)
-            logger.log_episode(info, step)
+            x, reward, done, truncated, info = envs.step(action)
+
+            infos =[ ]
+            for i in range(len(done)):
+                # empty dict
+                info_temp = {}
+
+
+                for dict_name, dict_array in info.items():
+                    # add dict_name and dict_array[i] to info_temp
+                    info_temp[dict_name] = dict_array[i]
+
+                infos.append(info_temp)
+
+            logger.log_episode(infos, step)
 
             mask = torch.FloatTensor(1 - done).unsqueeze(-1).to(args.device)
             masks.pop(0)
@@ -150,11 +163,11 @@ def experiment(args):
                 'm': mask
             })
             for _i in range(len(done)):
-                if done[_i]:
+                if done[_i] or truncated[_i]:
                     wandb.log(
-                    {"training/episode/reward": info[_i]['returns/episodic_reward'],
-                     "training/episode/length": info[_i]['returns/episodic_length'],
-                     "training/episode/reward_sign": int(info[_i]['returns/episodic_reward']!=-1000)
+                    {"training/episode/reward": infos[_i]['final_info']['returns/episodic_reward'],
+                     "training/episode/length": infos[_i]['final_info']['returns/episodic_length'],
+                     "training/episode/reward_sign": int(infos[_i]['final_info']['returns/episodic_reward']!=-1000)
                      },step=step)
 
 
@@ -190,14 +203,13 @@ def experiment(args):
             while True:
 
                 random_seeder = int(time.time())
-                np.random.seed(1212)
+                np.random.seed(random_seeder)
 
                 import gym
                 _env = gym.make(args.env_name)
                 # wrappered
                 _env_wrapped = flatten_fullview_wrapperWrapper(_env,reward_reg=args.reward_reg, env_max_step=args.env_max_step)
-                _env_wrapped =ReseedWrapper(_env_wrapped, seeds=[1212])
-                _x_wrapped = _env_wrapped.reset()
+                _x_wrapped,_ = _env_wrapped.reset(seed=0)
                 x = np.array([_x_wrapped for _ in range(args.num_workers)])
                 goals_test, states_test, masks_test = feudalnet.init_obj()
 
@@ -214,31 +226,44 @@ def experiment(args):
                     action_dist_max = np.array([np.double(np.array(actiondist[i]==np.max(actiondist[i]))) for i in range(len(actiondist))])
                     # Take a step, log the info, get the next state
                     action, logp, entropy = take_action(torch.asarray(action_dist_max))
-                    _x_wrapped, reward, done, info = _env_wrapped.step(action[0])
+                    _x_wrapped, reward, done, truncated, info = _env_wrapped.step(action[0])
                     x = np.array([_x_wrapped for _ in range(args.num_workers)])
-                    image = _env_wrapped.render('rgb_array')
-                    imset.append(image)
+                    # image = _env_wrapped.render('rgb_array')
+                    # imset.append(image)
 
                     frame += 1
                     # print(frame)
 
-                    if done:
-                        if reward != 0:
-                            print('wow')
-                            # image_writer(imset)
+                    if done or truncated:
                         break
 
-                if info['returns/episodic_reward'] is not None:
-                    reward = info['returns/episodic_reward']
-                    length = info['returns/episodic_length']
-                    _total_rewards.append(reward)
-                    _total_steps.append(length)
-                    logging.info(
-                        f"<<<>>> TRUE <<<>>> ep = {step_trueepi + 1} | reward = {reward} | length = {length}")
-                    step_t_ep += 1
-                    wandb.log(
-                        {"test/episode/reward": reward, "test/episode/length": length, "test/episode/reward_sign": int(reward!=-1000)},step=step)
-                    step_trueepi += 1
+
+                # if info has final_info
+                if 'final_info' in info:
+                    if info['final_info'] is not None:
+                        if info['final_info']['returns/episodic_reward'] is not None:
+                            reward = info['final_info']['returns/episodic_reward']
+                            length = info['final_info']['returns/episodic_length']
+                            _total_rewards.append(reward)
+                            _total_steps.append(length)
+                            logging.info(
+                                f"<<<>>> TRUE <<<>>> ep = {step_trueepi + 1} | reward = {reward} | length = {length}")
+                            step_t_ep += 1
+                            wandb.log(
+                                {"test/episode/reward": reward, "test/episode/length": length, "test/episode/reward_sign": int(reward!=-1000)},step=step)
+                            step_trueepi += 1
+                else:
+                    if info['returns/episodic_reward'] is not None:
+                        reward = info['returns/episodic_reward']
+                        length = info['returns/episodic_length']
+                        _total_rewards.append(reward)
+                        _total_steps.append(length)
+                        logging.info(
+                            f"<<<>>> TRUE <<<>>> ep = {step_trueepi + 1} | reward = {reward} | length = {length}")
+                        step_t_ep += 1
+                        wandb.log(
+                            {"test/episode/reward": reward, "test/episode/length": length, "test/episode/reward_sign": int(reward!=-1000)},step=step)
+                        step_trueepi += 1
 
                 if step_trueepi > max_step_trueepi:
                     # if len(_total_steps)>0:
