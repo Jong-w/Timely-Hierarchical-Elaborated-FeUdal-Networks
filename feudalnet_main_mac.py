@@ -13,17 +13,17 @@ import wandb
 
 parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
-parser.add_argument('--lr', type=float, default=1e-3,
+parser.add_argument('--lr', type=float, default=1e-5,
                     help='learning rate')
 parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
-parser.add_argument('--num-workers', type=int, default=16,
+parser.add_argument('--num-workers', type=int, default=64,
                     help='number of parallel environments to run')
 # parser.add_argument('--num-steps', type=int, default=400,
 #                     help='number of steps the agent takes before updating')
 parser.add_argument('--num-steps', type=int, default=100,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e6),
+parser.add_argument('--max-steps', type=int, default=int(1e7),
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
