@@ -39,7 +39,7 @@ parser.add_argument('--mlp', type=int, default=1,
                     help='toggle to feedforward ML architecture')
 parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
-parser.add_argument('--reward-reg', type=int, default=5000,
+parser.add_argument('--reward-reg', type=int, default=5000 ,
                     help='reward regulaizer')
 parser.add_argument('--env-max-step', type=int, default=1000,
                     help='max step for environment typically same as reward-reg')
