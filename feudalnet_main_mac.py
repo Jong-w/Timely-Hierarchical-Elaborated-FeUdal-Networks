@@ -17,7 +17,7 @@ parser.add_argument('--lr', type=float, default=1e-5,
                     help='learning rate')
 parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
-parser.add_argument('--num-workers', type=int, default=32,
+parser.add_argument('--num-workers', type=int, default=64,
                     help='number of parallel environments to run')
 # parser.add_argument('--num-steps', type=int, default=400,
 #                     help='number of steps the agent takes before updating')
@@ -131,8 +131,8 @@ def experiment(args):
                  = feudalnet(x, goals, states, masks[-1])
 
             # Take a step, log the info, get the next state
-            action, logp, entropytruncated, = take_action(action_dist)
-            x, reward, done,  info = envs.step(action)
+            action, logp, entropy = take_action(action_dist)
+            x, reward, done, truncated, info = envs.step(action)
 
             infos =[ ]
             for i in range(len(done)):
