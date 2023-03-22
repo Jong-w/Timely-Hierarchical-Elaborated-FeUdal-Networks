@@ -1,0 +1,35 @@
+2023/03/22 06:06:48 PM Namespace(alpha=0.5, cuda=True, dilation=10, entropy_coef=0.01, env_name='FrostbiteNoFrameskip-v4', eps=0, gamma_m=0.95, gamma_w=0.95, grad_clip=5.0, hidden_dim_manager=256, hidden_dim_worker=16, lr=0.005, max_steps=100000000, mlp=0, num_steps=400, num_workers=16, run_name='baseline', seed=0, time_horizon=10)
+2023/03/22 06:10:08 PM Namespace(alpha=0.5, cuda=True, dilation=10, entropy_coef=0.01, env_name='FrostbiteNoFrameskip-v4', eps=0, gamma_m=0.95, gamma_w=0.95, grad_clip=5.0, hidden_dim_manager=256, hidden_dim_worker=16, lr=0.005, max_steps=100000000, mlp=0, num_steps=400, num_workers=16, run_name='baseline', seed=0, time_horizon=10)
+2023/03/22 06:11:06 PM Starting new HTTPS connection (1): o151352.ingest.sentry.io:443
+2023/03/22 06:11:06 PM https://o151352.ingest.sentry.io:443 "POST /api/5288891/envelope/ HTTP/1.1" 200 2
+2023/03/22 06:11:33 PM > ep = 1 | total steps = 4656 | reward = 70.0 | length = 292 | hours = 0.024
+2023/03/22 06:11:40 PM > ep = 2 | total steps = 5280 | reward = 40.0 | length = 331 | hours = 0.026
+2023/03/22 06:11:40 PM > ep = 3 | total steps = 5360 | reward = 50.0 | length = 336 | hours = 0.026
+2023/03/22 06:11:41 PM > ep = 4 | total steps = 5488 | reward = 90.0 | length = 344 | hours = 0.026
+2023/03/22 06:11:41 PM > ep = 5 | total steps = 5504 | reward = 120.0 | length = 345 | hours = 0.026
+2023/03/22 06:11:41 PM > ep = 6 | total steps = 5968 | reward = 60.0 | length = 374 | hours = 0.026
+2023/03/22 06:11:41 PM > ep = 7 | total steps = 6016 | reward = 60.0 | length = 377 | hours = 0.026
+2023/03/22 06:11:42 PM > ep = 8 | total steps = 6240 | reward = 50.0 | length = 391 | hours = 0.026
+2023/03/22 06:11:42 PM > ep = 9 | total steps = 6256 | reward = 100.0 | length = 392 | hours = 0.026
+2023/03/22 06:11:42 PM > ep = 10 | total steps = 6288 | reward = 90.0 | length = 394 | hours = 0.026
+2023/03/22 06:11:55 PM <<<>>> TRUE <<<>>> ep =  reward = 0.0 | length = 243
+2023/03/22 06:11:55 PM > ep = 11 | total steps = 6400 | reward = 90.0 | length = 401 | hours = 0.030
+2023/03/22 06:11:56 PM > ep = 12 | total steps = 6576 | reward = 140.0 | length = 412 | hours = 0.030
+2023/03/22 06:11:56 PM > ep = 13 | total steps = 6576 | reward = 100.0 | length = 412 | hours = 0.030
+2023/03/22 06:11:56 PM > ep = 14 | total steps = 6704 | reward = 40.0 | length = 420 | hours = 0.030
+2023/03/22 06:11:56 PM > ep = 15 | total steps = 7120 | reward = 90.0 | length = 446 | hours = 0.030
+2023/03/22 06:11:57 PM > ep = 16 | total steps = 7536 | reward = 140.0 | length = 472 | hours = 0.030
+2023/03/22 06:11:59 PM > ep = 17 | total steps = 9936 | reward = 30.0 | length = 330 | hours = 0.031
+2023/03/22 06:12:00 PM > ep = 18 | total steps = 10528 | reward = 10.0 | length = 282 | hours = 0.031
+2023/03/22 06:12:00 PM > ep = 19 | total steps = 10768 | reward = 60.0 | length = 300 | hours = 0.031
+2023/03/22 06:12:00 PM > ep = 20 | total steps = 10800 | reward = 30.0 | length = 331 | hours = 0.031
+2023/03/22 06:12:01 PM > ep = 21 | total steps = 10864 | reward = 40.0 | length = 289 | hours = 0.031
+2023/03/22 06:12:01 PM > ep = 22 | total steps = 10944 | reward = 30.0 | length = 284 | hours = 0.031
+2023/03/22 06:12:01 PM > ep = 23 | total steps = 11008 | reward = 30.0 | length = 297 | hours = 0.031
+2023/03/22 06:12:01 PM > ep = 24 | total steps = 11232 | reward = 50.0 | length = 291 | hours = 0.031
+2023/03/22 06:12:01 PM > ep = 25 | total steps = 11264 | reward = 10.0 | length = 293 | hours = 0.031
+2023/03/22 06:12:02 PM > ep = 26 | total steps = 11600 | reward = 60.0 | length = 382 | hours = 0.031
+2023/03/22 06:12:02 PM > ep = 27 | total steps = 11616 | reward = 30.0 | length = 281 | hours = 0.031
+2023/03/22 06:12:02 PM > ep = 28 | total steps = 12192 | reward = 140.0 | length = 427 | hours = 0.032
+2023/03/22 06:12:03 PM > ep = 29 | total steps = 12608 | reward = 70.0 | length = 458 | hours = 0.032
+2023/03/22 06:12:03 PM > ep = 30 | total steps = 12784 | reward = 150.0 | length = 406 | hours = 0.032
