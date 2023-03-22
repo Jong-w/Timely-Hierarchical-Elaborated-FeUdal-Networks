@@ -10,9 +10,9 @@ import wandb
 
 parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
-parser.add_argument('--lr', type=float, default=0.0005,
+parser.add_argument('--lr', type=float, default=0.005,
                     help='learning rate')
-parser.add_argument('--env-name', type=str, default='SeaquestNoFrameskip-v0',
+parser.add_argument('--env-name', type=str, default='FrostbiteNoFrameskip-v4',
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=16,
                     help='number of parallel environments to run')
@@ -59,7 +59,7 @@ args = parser.parse_args()
 def experiment(args):
 
     save_steps = list(torch.arange(0, int(args.max_steps),
-                                   int(args.max_steps) // 10).numpy())
+                                   int(args.max_steps) // 10000).numpy())
 
     logger = Logger(args.run_name, args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
@@ -129,7 +129,7 @@ def experiment(args):
                 if done[_i]:
                     wandb.log(
                     {"training/episode/reward": info[_i]['returns/episodic_reward'],
-                     "training/episode/length": info[_i]['returns/episodic_length']})
+                     "training/episode/length": info[_i]['returns/episodic_length']},step=step)
 
 
             step += args.num_workers
@@ -149,60 +149,60 @@ def experiment(args):
         logger.log_scalars(loss_dict, step)
 
         if len(save_steps) > 0 and step > save_steps[0]:
-            torch.save({
-                'model': feudalnet.state_dict(),
-                'args': args,
-                'processor_mean': feudalnet.preprocessor.rms.mean,
-                'optim': optimizer.state_dict()},
-                f'models/{args.env_name}_{args.run_name}_step={step}.pt')
-            save_steps.pop(0)
+            # torch.save({
+            #     'model': feudalnet.state_dict(),
+            #     'args': args,
+            #     'processor_mean': feudalnet.preprocessor.rms.mean,
+            #     'optim': optimizer.state_dict()},
+            #     f'models/{args.env_name}_{args.run_name}_step={step}.pt')
+            # save_steps.pop(0)
 
-        import logging
-        import numpy as np
-        np.random.seed(0)
-        from utils import atari_wrapper
+            import logging
+            import numpy as np
+            np.random.seed(0)
+            from utils import atari_wrapper
 
-        import gym
-        _env = gym.make(args.env_name)
-        # wrappered
-        _env_wrapped = atari_wrapper(_env)
-        _x_wrapped = _env_wrapped.reset()
-        x = np.array([_x_wrapped for _ in range(args.num_workers)])
-        goals_test, states_test, masks_test = feudalnet.init_obj()
-
-        frame = 0
-        imset = []
-        while True:
-            # Detaching LSTMs and goals
-            feudalnet.repackage_hidden()
-            goals_test = [g.detach() for g in goals_test]
-
-            action_dist, goals_test, states_test, value_m, value_w \
-                = feudalnet(x, goals_test, states_test, masks_test[-1])
-            actiondist = action_dist.tolist()
-            action_dist_max = np.array(
-                [np.double(np.array(actiondist[i] == np.max(actiondist[i]))) for i in range(len(actiondist))])
-
-            # Take a step, log the info, get the next state
-            action, logp, entropy = take_action(torch.asarray(action_dist_max))
-            _x_wrapped, reward, done, info = _env_wrapped.step(action[0])
+            import gym
+            _env = gym.make(args.env_name)
+            # wrappered
+            _env_wrapped = atari_wrapper(_env)
+            _x_wrapped = _env_wrapped.reset()
             x = np.array([_x_wrapped for _ in range(args.num_workers)])
-            image = _env_wrapped.render('rgb_array')
-            imset.append(image)
+            goals_test, states_test, masks_test = feudalnet.init_obj()
 
-            frame += 1
-            # print(frame)
+            frame = 0
+            imset = []
+            while True:
+                # Detaching LSTMs and goals
+                feudalnet.repackage_hidden()
+                goals_test = [g.detach() for g in goals_test]
 
-            if done:
-                reward = info['returns/episodic_reward']
-                length = info['returns/episodic_length']
-                wandb.log(
-                    {"test/episode/reward": reward, "test/episode/length": length},step=step_test)
-                logging.info(
-                    f"<<<>>> TRUE <<<>>> ep =  reward = {reward} | length = {frame}")
-                step_test += 1
+                action_dist, goals_test, states_test, value_m, value_w \
+                    = feudalnet(x, goals_test, states_test, masks_test[-1])
+                actiondist = action_dist.tolist()
+                action_dist_max = np.array(
+                    [np.double(np.array(actiondist[i] == np.max(actiondist[i]))) for i in range(len(actiondist))])
 
-                break
+                # Take a step, log the info, get the next state
+                action, logp, entropy = take_action(torch.asarray(action_dist_max))
+                _x_wrapped, reward, done, info = _env_wrapped.step(action[0])
+                x = np.array([_x_wrapped for _ in range(args.num_workers)])
+                image = _env_wrapped.render('rgb_array')
+                imset.append(image)
+
+                frame += 1
+                # print(frame)
+
+                if done:
+                    reward = info['returns/episodic_reward']
+                    length = info['returns/episodic_length']
+                    wandb.log(
+                        {"test/episode/reward": reward, "test/episode/length": length},step=step)
+                    logging.info(
+                        f"<<<>>> TRUE <<<>>> ep =  reward = {reward} | length = {frame}")
+                    step_test += 1
+
+                    break
 
     envs.close()
     torch.save({
@@ -216,11 +216,10 @@ def experiment(args):
 def main(args):
     run_name = args.run_name
 
-    wandb.init(project="fun_sequest")
+    wandb.init(project="Frostbite", config = args.__dict__)
     for seed in range(2):
-        wandb.run.name = f"sequest_runseed={seed}"
+        wandb.run.name = f"frostbite_runseed={seed}"
         args.seed = seed
-        args.run_name = f"{run_name}_seed={seed}"
         experiment(args)
         wandb.finish()
 
