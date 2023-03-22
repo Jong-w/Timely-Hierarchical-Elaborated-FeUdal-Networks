@@ -52,8 +52,8 @@ parser.add_argument('--time-horizon_supervisor', type=int, default=5,
                     help='Manager horizon (c_s)')
 parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-worker', type=int, default=128,
-                    help='Hidden dim for worker (k)')
+parser.add_argument('--hidden-dim-supervisor', type=int, default=128,
+                    help='Hidden dim for supervisor (k)')
 parser.add_argument('--hidden-dim-worker', type=int, default=64,
                     help='Hidden dim for worker (k)')
 parser.add_argument('--gamma-w', type=float, default=0.9,
@@ -84,7 +84,7 @@ args = parser.parse_args()
 def experiment(args):
 
     save_steps = list(torch.arange(0, int(args.max_steps),
-                                   int(args.max_steps) // 10000).numpy())
+                                   int(args.max_steps) // 1000).numpy())
 
     # logger = Logger(args.run_name, args)
     logger = Logger(args.env_name, 'MPnets_64', args)
@@ -119,8 +119,8 @@ def experiment(args):
                                     alpha=0.99, eps=1e-5)
 
     goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
-    goals_m_test, states_m_test, goals_s_test, masks_test = MPnet.init_obj()
-    x = envs.reset()
+    goals_m_test, states_m_test, goals_s_test, states_s_test, masks_test = MPnet.init_obj()
+    x, _ = envs.reset()
     step = 0
     step_t_ep=0
     while step < args.max_steps:
@@ -232,8 +232,7 @@ def experiment(args):
                     MPnet.repackage_hidden()
                     goals_m_test = [g.detach() for g in goals_m_test]
                     goals_s_test = [g.detach() for g in goals_s_test]
-
-                    action_dist, goals_m_test, states_m_test, goals_s_test, states_s_test,value_m, value_w \
+                    action_dist, goals_m_test, states_m_test, value_m, goals_s_test, states_s_test,  value_s, value_w  \
                         = MPnet(x, goals_m_test, states_m_test, goals_s_test, states_s_test, masks_test[-1])
 
                     actiondist = action_dist.tolist()
