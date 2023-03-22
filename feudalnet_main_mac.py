@@ -80,7 +80,7 @@ args = parser.parse_args()
 def experiment(args):
 
     save_steps = list(torch.arange(0, int(args.max_steps),
-                                   int(args.max_steps) // 10000).numpy())
+                                   int(args.max_steps) // 1000).numpy())
 
     # logger = Logger(args.run_name, args)
     logger = Logger(args.env_name, "Feudal_Nets", args)
