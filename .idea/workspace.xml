@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="454c80e4-7824-4c65-92fd-a375cb625e51" name="변경" comment="">
+    <list default="true" id="454c80e4-7824-4c65-92fd-a375cb625e51" name="변경" comment="변경">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feudalnet_main_mac.py" beforeDir="false" afterPath="$PROJECT_DIR$/feudalnet_main_mac.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets].log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/MiniGrid-FourRooms-v0[Feudal_Nets].log" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -80,6 +79,28 @@
       <option name="presentableId" value="Default" />
       <updated>1679156402232</updated>
     </task>
+    <task id="LOCAL-00001" summary="변경">
+      <created>1679481956414</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1679481956414</updated>
+    </task>
+    <task id="LOCAL-00002" summary="변경">
+      <created>1679481972987</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1679481972987</updated>
+    </task>
+    <task id="LOCAL-00003" summary="변경">
+      <created>1679481990423</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1679481990423</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -104,6 +125,10 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="변경" />
+    <option name="LAST_COMMIT_MESSAGE" value="변경" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
