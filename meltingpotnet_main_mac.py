@@ -338,9 +338,9 @@ def main(args):
     run_name = args.run_name
     seed_size_ori = [args.hidden_dim_manager, args.hidden_dim_worker]
     seed_size = [[128,64],[256,128],[512,256]]
-    seed = 0
+    seed = 1
 
-    for seed in range(1):
+    for seed in range(29):
         wandb.init(project="fun44room",
         config=args.__dict__
         )
