@@ -46,9 +46,9 @@ parser.add_argument('--grid-size', type=int, default=19,
                     help='setting grid size')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon_manager', type=int, default=10,
+parser.add_argument('--time-horizon_manager', type=int, default=8,
                     help='Manager horizon (c_m)')
-parser.add_argument('--time-horizon_supervisor', type=int, default=5,
+parser.add_argument('--time-horizon_supervisor', type=int, default=4,
                     help='Manager horizon (c_s)')
 parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
@@ -67,9 +67,9 @@ parser.add_argument('--alpha', type=float, default=0.2,
 parser.add_argument('--eps', type=float, default=float(1e-3),
                     help='Random Gausian goal for exploration')
 
-parser.add_argument('--dilation_manager', type=int, default=10,
+parser.add_argument('--dilation_manager', type=int, default=8,
                     help='Dilation parameter for manager LSTM.')
-parser.add_argument('--dilation_supervisor', type=int, default=5,
+parser.add_argument('--dilation_supervisor', type=int, default=4,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
@@ -97,7 +97,7 @@ def experiment(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-    envs = make_envs(args.env_name, args.num_workers, args.seed, args.whole)
+    envs = make_envs(args.env_name, args.num_workers, args.whole, args.reward_reg, args.env_max_step, args.grid_size)
     MPnet = MPnets(
         num_workers=args.num_workers,
         input_dim=envs.observation_space.shape,
