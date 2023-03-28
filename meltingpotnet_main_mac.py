@@ -24,7 +24,7 @@ parser.add_argument('--num-workers', type=int, default=64,
 #                     help='number of steps the agent takes before updating')
 parser.add_argument('--num-steps', type=int, default=100,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e7),
+parser.add_argument('--max-steps', type=int, default=int(1e8),
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -46,9 +46,9 @@ parser.add_argument('--grid-size', type=int, default=19,
                     help='setting grid size')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon_manager', type=int, default=8,
+parser.add_argument('--time-horizon_manager', type=int, default=20,
                     help='Manager horizon (c_m)')
-parser.add_argument('--time-horizon_supervisor', type=int, default=4,
+parser.add_argument('--time-horizon_supervisor', type=int, default=10,
                     help='Manager horizon (c_s)')
 parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
@@ -67,9 +67,9 @@ parser.add_argument('--alpha', type=float, default=0.2,
 parser.add_argument('--eps', type=float, default=float(1e-3),
                     help='Random Gausian goal for exploration')
 
-parser.add_argument('--dilation_manager', type=int, default=8,
+parser.add_argument('--dilation_manager', type=int, default=20,
                     help='Dilation parameter for manager LSTM.')
-parser.add_argument('--dilation_supervisor', type=int, default=4,
+parser.add_argument('--dilation_supervisor', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
@@ -199,131 +199,6 @@ def experiment(args):
         optimizer.step()
         logger.log_scalars(loss_dict, step)
 
-
-        if len(save_steps) > 0 and step > save_steps[0]:
-            print('logger')
-            import logging
-
-
-            max_step_trueepi = 1
-            step_trueepi = 0
-            _total_rewards = []
-            _total_steps = []
-            _step = 0
-
-            # take mean of 100
-            while True:
-
-                random_seeder = int(time.time())
-                np.random.seed(random_seeder)
-
-                import gym
-                _env = gym.make(args.env_name)
-                # wrappered
-                _env_wrapped = flatten_fullview_wrapperWrapper(_env,reward_reg=args.reward_reg, env_max_step=args.env_max_step)
-                _x_wrapped,_ = _env_wrapped.reset(seed=0)
-                x = np.array([_x_wrapped for _ in range(args.num_workers)])
-                goals_m_test, states_m_test, goals_s_test, states_s_test, masks_test = MPnet.init_obj()
-
-                frame = 0
-                imset = []
-                while True:
-                    # Detaching LSTMs and goals
-                    MPnet.repackage_hidden()
-                    goals_m_test = [g.detach() for g in goals_m_test]
-                    goals_s_test = [g.detach() for g in goals_s_test]
-                    action_dist, goals_m_test, states_m_test, value_m, goals_s_test, states_s_test,  value_s, value_w  \
-                        = MPnet(x, goals_m_test, states_m_test, goals_s_test, states_s_test, masks_test[-1])
-
-                    actiondist = action_dist.tolist()
-                    action_dist_max = np.array([np.double(np.array(actiondist[i]==np.max(actiondist[i]))) for i in range(len(actiondist))])
-                    # Take a step, log the info, get the next state
-                    action, logp, entropy = take_action(torch.asarray(action_dist_max))
-                    _x_wrapped, reward, done, truncated, info = _env_wrapped.step(action[0])
-                    x = np.array([_x_wrapped for _ in range(args.num_workers)])
-                    # image = _env_wrapped.render('rgb_array')
-                    # imset.append(image)
-
-                    frame += 1
-                    # print(frame)
-
-                    if done or truncated:
-                        break
-
-
-                # if info has final_info
-                if 'final_info' in info:
-                    if info['final_info'] is not None:
-                        if info['final_info']['returns/episodic_reward'] is not None:
-                            reward = info['final_info']['returns/episodic_reward']
-                            length = info['final_info']['returns/episodic_length']
-                            _total_rewards.append(reward)
-                            _total_steps.append(length)
-                            logging.info(
-                                f"<<<>>> TRUE <<<>>> ep = {step_trueepi + 1} | reward = {reward} | length = {length}")
-                            step_t_ep += 1
-                            wandb.log(
-                                {"test/episode/reward": reward, "test/episode/length": length, "test/episode/reward_sign": int(reward!=-1000)},step=step)
-                            step_trueepi += 1
-                else:
-                    if info['returns/episodic_reward'] is not None:
-                        reward = info['returns/episodic_reward']
-                        length = info['returns/episodic_length']
-                        _total_rewards.append(reward)
-                        _total_steps.append(length)
-                        logging.info(
-                            f"<<<>>> TRUE <<<>>> ep = {step_trueepi + 1} | reward = {reward} | length = {length}")
-                        step_t_ep += 1
-                        wandb.log(
-                            {"test/episode/reward": reward, "test/episode/length": length, "test/episode/reward_sign": int(reward!=-1000)},step=step)
-                        step_trueepi += 1
-
-                if step_trueepi > max_step_trueepi:
-                    # if len(_total_steps)>0:
-                    #     wandb.log(
-                    #         {"test/mean/reward": np.mean(_total_rewards), "test/mean/length": np.mean(_total_steps)},step=step_t_ep)
-                    break
-                '''
-                # Detaching LSTMs and goals
-                feudalnet.repackage_hidden()
-                goals = [g.detach() for g in goals]
-                np.random.seed(int(time.time()))
-                x = envs.reset()
-                action_dist, goals, states, value_m, value_w \
-                    = feudalnet(x, goals, states, masks[-1])
-                action_dist_ = action_dist.tolist()
-                action_dist_max = np.array([np.double(np.array(action_dist_[i]==np.max(action_dist_[i]))) for i in range(len(action_dist_))])
-    
-                # Take a step, log the info, get the next state
-                action, logp, entropy = take_action(torch.asarray(action_dist_max))
-                x, reward, done, info = envs.step(action)
-    
-    
-                for episode_dict in info:
-                    if episode_dict['returns/episodic_reward'] is not None:
-                        reward = episode_dict['returns/episodic_reward']
-                        length = episode_dict['returns/episodic_length']
-                        _total_rewards.append(reward)
-                        _total_steps.append(length)
-                        logging.info(f"<<<>>> TRUE <<<>>> ep = {step_trueepi+1} | reward = {reward} | length = {length}")
-                        wandb.log(
-                            {"test/episode/reward": reward, "test/episode/length": length})
-                        step_trueepi += 1
-    
-                _step += args.num_workers
-                if step_trueepi>max_step_trueepi or _step>(args.num_workers)*args.env_max_step*max_step_trueepi:
-                    wandb.log({"test/mean/reward": np.mean(_total_rewards), "test/mean/length": np.mean(_total_steps)})
-                    break
-                '''
-
-        if len(save_steps) > 0 and step > save_steps[0]:
-            # torch.save({
-            #     'model': feudalnet.state_dict(),
-            #     'args': args,
-            #     'processor_mean': feudalnet.preprocessor.rms.mean,
-            #     'optim': optimizer.state_dict()},
-            #     f'models/{args.env_name}_{args.run_name}_FeudalNets_step={step}.pt')
-            save_steps.pop(0)
     envs.close()
     torch.save({
         'model': MPnet.state_dict(),
@@ -340,8 +215,8 @@ def main(args):
     seed_size = [[128,64],[256,128],[512,256]]
     seed = 1
 
-    for seed in range(29):
-        wandb.init(project="fun44room",
+    for seed in range(1):
+        wandb.init(project="fourroom_15_funmpn",
         config=args.__dict__
         )
         args.seed = seed

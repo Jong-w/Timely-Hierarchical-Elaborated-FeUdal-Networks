@@ -225,7 +225,10 @@ def weight_init(layer):
 
 
 if __name__=="__main__":
-    wrapper_fn = basic_birdview_wrapper
-    env = gym.vector.make('MiniGrid-FourRooms-v0', wrappers=basic_birdview_wrapper)
-    x = env.reset()
-    cv2.imwrite('one_fig.png', x.reshape((120, 120, 3)))
+    torch.manual_seed(0)
+    env = gym.make('MiniGrid-FourRooms-v0', render_mode='human')
+    env.reset()
+    for _ in range(100):
+        #env.render_mode('human')
+        image = env.render()
+        #cv2.imwrite('two_fig.png', image)
