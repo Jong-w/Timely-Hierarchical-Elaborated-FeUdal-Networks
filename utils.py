@@ -229,6 +229,4 @@ if __name__=="__main__":
     env = gym.make('MiniGrid-FourRooms-v0', render_mode='human')
     env.reset()
     for _ in range(100):
-        #env.render_mode('human')
         image = env.render()
-        #cv2.imwrite('two_fig.png', image)
