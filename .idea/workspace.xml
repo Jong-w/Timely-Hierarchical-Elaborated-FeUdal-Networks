@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="454c80e4-7824-4c65-92fd-a375cb625e51" name="변경" comment="Update utils for melting">
+      <change afterPath="$PROJECT_DIR$/0208_2.pptx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/_README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,13 +36,17 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/dongj/Documents/MeltingpotNets_pytorch&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/dongj/MeltingpotNets_pytorch&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\dongj\MeltingpotNets_pytorch" />
       <recent name="C:\Users\dongj\Documents\MeltingpotNets_pytorch" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\dongj\MeltingpotNets_pytorch" />
     </key>
   </component>
   <component name="RunManager" selected="Python.meltingpotnet_main_mac">
@@ -184,7 +192,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="변경" />
-    <option name="LAST_COMMIT_MESSAGE" value="변경" />
+    <MESSAGE value="Update utils for melting" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update utils for melting" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
