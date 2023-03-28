@@ -13,17 +13,17 @@ import wandb
 
 parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
-parser.add_argument('--lr', type=float, default=1e-3,
+parser.add_argument('--lr', type=float, default=1e-5,
                     help='learning rate')
 parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
-parser.add_argument('--num-workers', type=int, default=16,
+parser.add_argument('--num-workers', type=int, default=64,
                     help='number of parallel environments to run')
 # parser.add_argument('--num-steps', type=int, default=400,
 #                     help='number of steps the agent takes before updating')
 parser.add_argument('--num-steps', type=int, default=100,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e9),
+parser.add_argument('--max-steps', type=int, default=int(1e7),
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -80,7 +80,7 @@ args = parser.parse_args()
 def experiment(args):
 
     save_steps = list(torch.arange(0, int(args.max_steps),
-                                   int(args.max_steps) // 100000).numpy())
+                                   int(args.max_steps) // 1000).numpy())
 
     # logger = Logger(args.run_name, args)
     logger = Logger(args.env_name, "Feudal_Nets", args)
@@ -109,7 +109,7 @@ def experiment(args):
 
     optimizer = torch.optim.RMSprop(feudalnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)
-    envs.single_action_space.n
+
     goals, states, masks = feudalnet.init_obj()
     goals_test, states_test, masks_test = feudalnet.init_obj()
 
@@ -411,7 +411,7 @@ def main(args):
     seed_size_ori = [args.hidden_dim_manager, args.hidden_dim_worker]
     seed_size = [[128,64],[256,128],[512,256]]
     seed = 0
-    for _ in range(3):
+    for _ in range(1):
         wandb.init(project="fun44room",
         config=args.__dict__
         )

@@ -141,9 +141,11 @@ class Perception(nn.Module):
         super().__init__()
         if mlp:
             self.percept = nn.Sequential(
-                nn.Linear(input_dim[-1] * input_dim[0] * input_dim[1], 64),
+                nn.Linear(input_dim[-1] * input_dim[1] * input_dim[2], 256),
                 nn.ReLU(),
-                nn.Linear(64, d),
+                # nn.Linear(256, 256),
+                # nn.ReLU(),
+                nn.Linear(256, d),
                 nn.ReLU())
         else:
             self.percept = nn.Sequential(
