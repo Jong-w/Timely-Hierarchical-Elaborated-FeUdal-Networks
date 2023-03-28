@@ -170,7 +170,7 @@ def experiment(args):
                 'entropy': entropy.unsqueeze(-1),
                 's_goal_cos': MPnet.state_goal_cosine(states_s, goals_s, masks),
                 #'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
-                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, states_m, masks),
+                'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s, masks),
                 'm': mask
             })
             for _i in range(len(done)):

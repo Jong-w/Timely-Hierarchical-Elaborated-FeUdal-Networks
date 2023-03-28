@@ -192,7 +192,7 @@ class Manager(nn.Module):
 
         return goal, hidden, state, value_est
 
-    def goal_goal_cosine(self, goals_m, states_m,  masks):
+    def goal_goal_cosine(self, goals_m, goals_s,  masks):
         """For the manager, we update using the cosine of:
             cos( S_{t+c} - S_{t}, G_{t} )
 
@@ -217,7 +217,7 @@ class Manager(nn.Module):
         #goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
         #cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
 
-        cosine_dist = d_cos(states_m[t_s + self.c_s] - states_m[t_s], goals_m[t_m])
+        cosine_dist = d_cos(goals_s[t_s + self.c_s] - goals_s[t_s], goals_m[t_m])
 
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
 
