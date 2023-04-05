@@ -115,9 +115,12 @@ class MPnets(nn.Module):
 
     def goal_goal_cosine(self, goals_m, goals_s,  masks):
         return self.manager.goal_goal_cosine(goals_m, goals_s,  masks)
+    
+    def state_goal_m_cosine(self, states_m, goals_s,  masks):
+        return self.manager.state_goal_cosine(states_m, goals_s,  masks)
 
-    def state_goal_cosine(self, states_s, goals_s, masks):
-        return self.supervisor.state_goal_cosine(states_s, goals_s, masks)
+    def state_goal_cosine(self, states_m, goals_m, masks):
+        return self.supervisor.state_goal_cosine(states_m, goals_m, masks)
 
     def repackage_hidden(self):
         def repackage_rnn(x):
@@ -218,6 +221,36 @@ class Manager(nn.Module):
         #cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
 
         cosine_dist = d_cos(goals_s[t_s + self.c_s] - goals_s[t_s], goals_m[t_m])
+
+        cosine_dist = mask * cosine_dist.unsqueeze(-1)
+
+        return cosine_dist
+    def state_goal_cosine(self, states_m, goals_m,  masks):
+        """For the manager, we update using the cosine of:
+            cos( S_{t+c} - S_{t}, G_{t} )
+
+        Remember that states_m, goals_m are of size c * 2 + 1, with our current
+        update time step right in the middle at t = c + 1.
+        States should not have a gradient active, but goals_m[t] _should_.
+
+        Args:
+            states_m ([type]): list of size 2*C + 1, each element B x D
+            goals_m ([type]): list of size 2*C + 1, each element B x D
+
+        Returns:
+            [type]: cosine distance between:
+                        the difference state s_{t+c} - s_{t},
+                        the goal embedding at timestep t g_t(theta).
+        """
+        t_m = self.c_m
+        t_s = self.c_s
+        mask = torch.stack(masks[t_m: t_m + self.c_m - 1]).prod(dim=0)
+
+        #goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
+        #goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
+        #cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
+
+        cosine_dist = d_cos(states_m[t_s + self.c_s] - states_m[t_s], goals_m[t_m])
 
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
 
@@ -412,10 +445,8 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
     advantage_m = ret_m - value_m
 
     loss_worker = (logps * advantage_w.detach()).mean()
-    loss_supervisor = (state_goal_cosines * advantage_s.detach()).mean()
-    loss_manager = (goal_goal_cosines * advantage_m.detach()).mean()
-    # loss_supervisor = (goal_goal_cosines * advantage_s.detach()).mean()
-    # loss_manager = (state_goal_cosines * advantage_m.detach()).mean()
+    loss_supervisor = (goal_goal_cosines * advantage_s.detach()).mean()
+    loss_manager = (state_goal_cosines * advantage_m.detach()).mean()
 
     # Update the critics into the right direction
     value_w_loss = 0.5 * advantage_w.pow(2).mean()

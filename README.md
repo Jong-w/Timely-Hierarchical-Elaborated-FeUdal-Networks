@@ -7,8 +7,13 @@ basic idea
 
 - Original 
 
+`metlingpotnet.py`
+`metlingpotnet_main_mac.py`
 ![figure](figs/fig.png)
 
 - Modified by Dongjae
 
-자기자신에 대해서 배우는 걸로 해야함.
+`metlingpotnet_self.py`
+`metlingpotnet_self_main.py`
+
+자기자신에 대해서 배우는 걸로 한거
