@@ -216,7 +216,7 @@ def main(args):
     seed = 1
 
     for seed in range(1):
-        wandb.init(project="fourroom_15_funmpn",
+        wandb.init(project="fourroom_dk0405",
         config=args.__dict__
         )
         args.seed = seed

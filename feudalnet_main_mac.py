@@ -287,7 +287,7 @@ def main(args):
     seed_size = [[128,64],[256,128],[512,256]]
     seed = 0
     for _ in range(1):
-        wandb.init(project="fourroom_15_funmpn",
+        wandb.init(project="fourroom_dk0405",
         config=args.__dict__
         )
         args.seed = seed
