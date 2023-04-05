@@ -3,7 +3,7 @@ import torch
 import cv2
 
 from utils import make_envs, take_action, init_obj
-from meltingpotnet import MPnets, mp_loss
+from meltingpotnet_dbg import MPnets, mp_loss
 from storage import Storage
 from logger import Logger
 from utils import flatten_fullview_wrapperWrapper
