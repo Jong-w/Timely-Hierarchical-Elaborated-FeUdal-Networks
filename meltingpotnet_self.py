@@ -445,8 +445,11 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
     advantage_m = ret_m - value_m
 
     loss_worker = (logps * advantage_w.detach()).mean()
-    loss_supervisor = (goal_goal_cosines * advantage_s.detach()).mean()
-    loss_manager = (state_goal_cosines * advantage_m.detach()).mean()
+    loss_supervisor = (state_goal_cosines * advantage_s.detach()).mean()
+    loss_manager = (goal_goal_cosines * advantage_m.detach()).mean()
+    # loss_supervisor = (goal_goal_cosines * advantage_s.detach()).mean()
+    # loss_manager = (state_goal_cosines * advantage_m.detach()).mean()
+
 
     # Update the critics into the right direction
     value_w_loss = 0.5 * advantage_w.pow(2).mean()
