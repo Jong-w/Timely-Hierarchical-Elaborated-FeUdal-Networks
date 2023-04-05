@@ -24,7 +24,7 @@ parser.add_argument('--num-workers', type=int, default=64,
 #                     help='number of steps the agent takes before updating')
 parser.add_argument('--num-steps', type=int, default=100,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e8),
+parser.add_argument('--max-steps', type=int, default=int(1e7),
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -46,15 +46,15 @@ parser.add_argument('--grid-size', type=int, default=19,
                     help='setting grid size')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon_manager', type=int, default=20,
+parser.add_argument('--time-horizon_manager', type=int, default=10,
                     help='Manager horizon (c_m)')
-parser.add_argument('--time-horizon_supervisor', type=int, default=10,
+parser.add_argument('--time-horizon_supervisor', type=int, default=5,
                     help='Manager horizon (c_s)')
-parser.add_argument('--hidden-dim-manager', type=int, default=256,
+parser.add_argument('--hidden-dim-manager', type=int, default=512,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-supervisor', type=int, default=128,
+parser.add_argument('--hidden-dim-supervisor', type=int, default=256,
                     help='Hidden dim for supervisor (k)')
-parser.add_argument('--hidden-dim-worker', type=int, default=64,
+parser.add_argument('--hidden-dim-worker', type=int, default=128,
                     help='Hidden dim for worker (k)')
 parser.add_argument('--gamma-w', type=float, default=0.9,
                     help="discount factor worker")
@@ -67,9 +67,9 @@ parser.add_argument('--alpha', type=float, default=0.2,
 parser.add_argument('--eps', type=float, default=float(1e-3),
                     help='Random Gausian goal for exploration')
 
-parser.add_argument('--dilation_manager', type=int, default=20,
+parser.add_argument('--dilation_manager', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
-parser.add_argument('--dilation_supervisor', type=int, default=10,
+parser.add_argument('--dilation_supervisor', type=int, default=5,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
