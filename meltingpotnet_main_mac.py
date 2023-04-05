@@ -50,7 +50,7 @@ parser.add_argument('--time-horizon_manager', type=int, default=10,
                     help='Manager horizon (c_m)')
 parser.add_argument('--time-horizon_supervisor', type=int, default=5,
                     help='Manager horizon (c_s)')
-parser.add_argument('--hidden-dim-manager', type=int, default=512,
+parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
 parser.add_argument('--hidden-dim-supervisor', type=int, default=256,
                     help='Hidden dim for supervisor (k)')
@@ -194,6 +194,7 @@ def experiment(args):
 
         optimizer.zero_grad()
         loss, loss_dict = mp_loss(storage, next_v_m, next_v_s, next_v_w, args)
+        wandb.log(loss_dict)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(MPnet.parameters(), args.grad_clip)
         optimizer.step()

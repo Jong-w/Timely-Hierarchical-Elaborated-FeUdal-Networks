@@ -4,11 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="454c80e4-7824-4c65-92fd-a375cb625e51" name="변경" comment="Update utils for melting">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="454c80e4-7824-4c65-92fd-a375cb625e51" name="변경" comment="metlingpotnet_main set the same parameters">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feudalnet_main_mac.py" beforeDir="false" afterPath="$PROJECT_DIR$/feudalnet_main_mac.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/meltingpotnet_main_mac.py" beforeDir="false" afterPath="$PROJECT_DIR$/meltingpotnet_main_mac.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -45,7 +42,7 @@
       <recent name="C:\Users\dongj\Documents\MeltingpotNets_pytorch" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.feudalnet_main_mac">
+  <component name="RunManager" selected="Python.meltingpotnet_main_mac">
     <configuration name="feudalnet_main_mac" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MeltingpotNets_pytorch" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -90,8 +87,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.feudalnet_main_mac" />
         <item itemvalue="Python.meltingpotnet_main_mac" />
+        <item itemvalue="Python.feudalnet_main_mac" />
       </list>
     </recent_temporary>
   </component>
@@ -153,12 +150,12 @@
       <option name="project" value="LOCAL" />
       <updated>1679484464601</updated>
     </task>
-    <task id="LOCAL-00008" summary="변경">
-      <created>1679547823030</created>
+    <task id="LOCAL-00008" summary="metlingpotnet_main set the same parameters">
+      <created>1680692857363</created>
       <option name="number" value="00008" />
       <option name="presentableId" value="LOCAL-00008" />
       <option name="project" value="LOCAL" />
-      <updated>1679547823031</updated>
+      <updated>1680692857363</updated>
     </task>
     <option name="localTasksCounter" value="9" />
     <servers />
@@ -188,7 +185,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="변경" />
-    <option name="LAST_COMMIT_MESSAGE" value="변경" />
+    <MESSAGE value="metlingpotnet_main set the same parameters" />
+    <option name="LAST_COMMIT_MESSAGE" value="metlingpotnet_main set the same parameters" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -207,6 +205,26 @@
           <url>file://$PROJECT_DIR$/utils.py</url>
           <line>85</line>
           <option name="timeStamp" value="81" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/meltingpotnet_main_mac.py</url>
+          <line>223</line>
+          <option name="timeStamp" value="82" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/meltingpotnet_main_mac.py</url>
+          <line>172</line>
+          <option name="timeStamp" value="83" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/meltingpotnet.py</url>
+          <line>219</line>
+          <option name="timeStamp" value="84" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/meltingpotnet.py</url>
+          <line>116</line>
+          <option name="timeStamp" value="85" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
