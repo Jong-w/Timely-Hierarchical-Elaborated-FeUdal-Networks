@@ -73,7 +73,7 @@ parser.add_argument('--dilation_supervisor', type=int, default=5,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
-parser.add_argument('--run-name', type=str, default='melting',
+parser.add_argument('--run-name', type=str, default='melting_softmax',
                     help='run name for the logger.')
 parser.add_argument('--seed', type=int, default=0,
                     help='reproducibility seed.')
