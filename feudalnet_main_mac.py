@@ -411,12 +411,12 @@ def main(args):
     seed_size_ori = [args.hidden_dim_manager, args.hidden_dim_worker]
     seed_size = [[128,64],[256,128],[512,256]]
     seed = 0
-    for _ in range(1):
+    for senum in range(1,30):
         wandb.init(project="fun44room",
         config=args.__dict__
         )
-        args.seed = seed
-        wandb.run.name = f"{run_name}_runseed={seed}"
+        args.seed = senum
+        wandb.run.name = f"{run_name}_runseed={senum}"
         experiment(args)
         wandb.finish()
         seed+=1
