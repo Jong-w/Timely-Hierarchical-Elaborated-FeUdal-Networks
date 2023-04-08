@@ -93,7 +93,7 @@ class ReturnWrapper_wargs(ReturnWrapper):
             info['returns/episodic_length'] = None
 
         return obs, reward, done, truncated, info
-    def reset(self, *, seed=0, options=None):
+    def reset(self, *, seed=73060, options=None):
         # super().__init__(env)
         self.total_rewards = 0
         self.steps = 0

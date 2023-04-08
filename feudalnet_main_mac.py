@@ -23,7 +23,7 @@ parser.add_argument('--num-workers', type=int, default=64,
 #                     help='number of steps the agent takes before updating')
 parser.add_argument('--num-steps', type=int, default=100,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e7),
+parser.add_argument('--max-steps', type=int, default=int(3e7),
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -48,7 +48,7 @@ parser.add_argument('--grid-size', type=int, default=19,
                     help='setting grid size')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon', type=int, default=5,
+parser.add_argument('--time-horizon', type=int, default=10,
                     help='Manager horizon (c)')
 parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
@@ -66,7 +66,7 @@ parser.add_argument('--alpha', type=float, default=0.2,
                     help='Intrinsic reward coefficient in [0, 1]')
 parser.add_argument('--eps', type=float, default=float(1e-3),
                     help='Random Gausian goal for exploration')
-parser.add_argument('--dilation', type=int, default=5,
+parser.add_argument('--dilation', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 
 
@@ -209,7 +209,7 @@ def experiment(args):
                 _env = gym.make(args.env_name)
                 # wrappered
                 _env_wrapped = flatten_fullview_wrapperWrapper(_env,reward_reg=args.reward_reg, env_max_step=args.env_max_step)
-                _x_wrapped,_ = _env_wrapped.reset(seed=0)
+                _x_wrapped,_ = _env_wrapped.reset(seed=73060)
                 x = np.array([_x_wrapped for _ in range(args.num_workers)])
                 goals_test, states_test, masks_test = feudalnet.init_obj()
 
@@ -411,8 +411,8 @@ def main(args):
     seed_size_ori = [args.hidden_dim_manager, args.hidden_dim_worker]
     seed_size = [[128,64],[256,128],[512,256]]
     seed = 0
-    for senum in range(1,30):
-        wandb.init(project="fun44room",
+    for senum in range(0,5):
+        wandb.init(project="fourroom1919_0408",
         config=args.__dict__
         )
         args.seed = senum
