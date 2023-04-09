@@ -22,7 +22,7 @@ parser.add_argument('--num-workers', type=int, default=64,
                     help='number of parallel environments to run')
 # parser.add_argument('--num-steps', type=int, default=400,
 #                     help='number of steps the agent takes before updating')
-parser.add_argument('--num-steps', type=int, default=100,
+parser.add_argument('--num-steps', type=int, default=1000,
                     help='number of steps the agent takes before updating')
 parser.add_argument('--max-steps', type=int, default=int(3e7),
                     help='maximum number of training steps in total')
@@ -46,9 +46,9 @@ parser.add_argument('--grid-size', type=int, default=19,
                     help='setting grid size')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon_manager', type=int, default=20,
+parser.add_argument('--time-horizon_manager', type=int, default=30,
                     help='Manager horizon (c_m)')
-parser.add_argument('--time-horizon_supervisor', type=int, default=10,
+parser.add_argument('--time-horizon_supervisor', type=int, default=15,
                     help='Manager horizon (c_s)')
 parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
@@ -67,9 +67,9 @@ parser.add_argument('--alpha', type=float, default=0.2,
 parser.add_argument('--eps', type=float, default=float(1e-3),
                     help='Random Gausian goal for exploration')
 
-parser.add_argument('--dilation_manager', type=int, default=20,
+parser.add_argument('--dilation_manager', type=int, default=30,
                     help='Dilation parameter for manager LSTM.')
-parser.add_argument('--dilation_supervisor', type=int, default=10,
+parser.add_argument('--dilation_supervisor', type=int, default=15,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
