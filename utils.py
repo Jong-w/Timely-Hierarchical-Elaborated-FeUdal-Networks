@@ -150,7 +150,7 @@ def flatten_fullview_wrapperWrapper(env, reward_reg=5000, env_max_step=5000):
     env.max_steps = env_max_step
     env = FullyObsWrapper(env)
     env = FlattenWrapper(env)
-    env = ReturnWrapper_wargs(env, reward_reg=reward_reg)
+    env = ReturnWrapper_wargs(env, reward_reg=reward_reg,  max_steps=env_max_step)
     return env
 
 def flatten_fullview_wrapper(env):

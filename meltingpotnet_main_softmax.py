@@ -14,7 +14,7 @@ import numpy as np
 
 parser = argparse.ArgumentParser(description='MPnet')
 # GENERIC RL/MODEL PARAMETERS
-parser.add_argument('--lr', type=float, default=1e-5,
+parser.add_argument('--lr', type=float, default=1e-3,
                     help='learning rate')
 parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
@@ -39,16 +39,16 @@ parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
 parser.add_argument('--reward-reg', type=int, default=5000,
                     help='reward regulaizer')
-parser.add_argument('--env-max-step', type=int, default=1000,
+parser.add_argument('--env-max-step', type=int, default=5000,
                     help='max step for environment typically same as reward-reg')
 
 parser.add_argument('--grid-size', type=int, default=19,
                     help='setting grid size')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon_manager', type=int, default=30,
+parser.add_argument('--time-horizon_manager', type=int, default=20,
                     help='Manager horizon (c_m)')
-parser.add_argument('--time-horizon_supervisor', type=int, default=15,
+parser.add_argument('--time-horizon_supervisor', type=int, default=10,
                     help='Manager horizon (c_s)')
 parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
@@ -67,9 +67,9 @@ parser.add_argument('--alpha', type=float, default=0.2,
 parser.add_argument('--eps', type=float, default=float(1e-3),
                     help='Random Gausian goal for exploration')
 
-parser.add_argument('--dilation_manager', type=int, default=30,
+parser.add_argument('--dilation_manager', type=int, default=20,
                     help='Dilation parameter for manager LSTM.')
-parser.add_argument('--dilation_supervisor', type=int, default=15,
+parser.add_argument('--dilation_supervisor', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 
 # EXPERIMENT RELATED PARAMS
