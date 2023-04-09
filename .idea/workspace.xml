@@ -6,9 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="454c80e4-7824-4c65-92fd-a375cb625e51" name="변경" comment="metlingpotnet_main set the same parameters">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/feudalnet_main_mac.py" beforeDir="false" afterPath="$PROJECT_DIR$/feudalnet_main_mac.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/meltingpotnet_main_mac.py" beforeDir="false" afterPath="$PROJECT_DIR$/meltingpotnet_main_mac.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/meltingpotnet_self_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/meltingpotnet_self_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/meltingpotnet_main_softmax.py" beforeDir="false" afterPath="$PROJECT_DIR$/meltingpotnet_main_softmax.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -204,14 +203,7 @@
       <option name="project" value="LOCAL" />
       <updated>1679547823031</updated>
     </task>
-    <task id="LOCAL-00009" summary="metlingpotnet_main set the same parameters">
-      <created>1681040055880</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1681040055880</updated>
-    </task>
-    <option name="localTasksCounter" value="10" />
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -239,8 +231,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="변경" />
-    <MESSAGE value="metlingpotnet_main set the same parameters" />
-    <option name="LAST_COMMIT_MESSAGE" value="metlingpotnet_main set the same parameters" />
+    <option name="LAST_COMMIT_MESSAGE" value="변경" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
