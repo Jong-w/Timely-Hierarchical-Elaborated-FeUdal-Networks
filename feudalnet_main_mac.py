@@ -13,7 +13,7 @@ import wandb
 
 parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
-parser.add_argument('--lr', type=float, default=1e-5,
+parser.add_argument('--lr', type=float, default=1e-3,
                     help='learning rate')
 parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
@@ -41,14 +41,14 @@ parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
 parser.add_argument('--reward-reg', type=int, default=5000,
                     help='reward regulaizer')
-parser.add_argument('--env-max-step', type=int, default=1000,
+parser.add_argument('--env-max-step', type=int, default=5000,
                     help='max step for environment typically same as reward-reg')
 
 parser.add_argument('--grid-size', type=int, default=19,
                     help='setting grid size')
 
 # SPECIFIC FEUDALNET PARAMETERS
-parser.add_argument('--time-horizon', type=int, default=15,
+parser.add_argument('--time-horizon', type=int, default=10,
                     help='Manager horizon (c)')
 parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
@@ -66,7 +66,7 @@ parser.add_argument('--alpha', type=float, default=0.2,
                     help='Intrinsic reward coefficient in [0, 1]')
 parser.add_argument('--eps', type=float, default=float(1e-3),
                     help='Random Gausian goal for exploration')
-parser.add_argument('--dilation', type=int, default=15,
+parser.add_argument('--dilation', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 
 
