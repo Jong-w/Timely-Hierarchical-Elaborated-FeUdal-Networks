@@ -201,8 +201,8 @@ class Worker(nn.Module):
         self.num_actions = num_actions
         self.device = device
 
-        self.Wrnn = nn.LSTMCell(d, self.num_actions)  #todo: changed output shape of rnn, so we can make vector that has same length with action
-        self.phi = nn.Linear(d, k, bias=False)
+        self.Wrnn = nn.LSTMCell(d,self.k * self.num_actions)  #todo: changed output shape of rnn, so we can make vector that has same length with action
+        self.phi = nn.Linear(self.k*self.num_actions,  self.num_actions, bias=False)
 
         self.critic = nn.Sequential(
             nn.Linear(k * num_actions, 50),
@@ -229,13 +229,12 @@ class Worker(nn.Module):
 
         # Detaching is vital, no end to end training
         #goals = torch.stack(goals).detach().sum(dim=0)  #todo: deactivate goals
-        #w = self.phi(goals)   #todo: deactivate goals
+        w = self.phi(u)   #todo: deactivate goals
+
         value_est = self.critic(u)
 
-        #u = u.reshape(u.shape[0], self.k, self.num_actions)
-        u = u.reshape(u.shape[0],self.num_actions).softmax(dim=-1) #todo: we changed output shape at __init__. so we have to change 'reshape' code. Changed the shape and applied softmax here.
-        #a = torch.einsum("bk, bka -> ba", w, u).softmax(dim=-1)
-        a = u.softmax(dim=-1)
+        # a = torch.einsum("bk, bka -> ba", w, u).softmax(dim=-1)
+        a = w.softmax(dim=-1)
 
         return a, hidden, value_est
 
