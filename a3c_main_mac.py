@@ -13,7 +13,7 @@ import wandb
 
 parser = argparse.ArgumentParser(description='Feudal Nets')
 # GENERIC RL/MODEL PARAMETERS
-parser.add_argument('--lr', type=float, default=1e-5,
+parser.add_argument('--lr', type=float, default=1e-3,
                     help='learning rate')
 parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
@@ -21,9 +21,9 @@ parser.add_argument('--num-workers', type=int, default=64,
                     help='number of parallel environments to run')
 # parser.add_argument('--num-steps', type=int, default=400,
 #                     help='number of steps the agent takes before updating')
-parser.add_argument('--num-steps', type=int, default=100,
+parser.add_argument('--num-steps', type=int, default=1000,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(1e8),
+parser.add_argument('--max-steps', type=int, default=int(3e7),
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -41,7 +41,7 @@ parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
 parser.add_argument('--reward-reg', type=int, default=5000,
                     help='reward regulaizer')
-parser.add_argument('--env-max-step', type=int, default=1000,
+parser.add_argument('--env-max-step', type=int, default=5000,
                     help='max step for environment typically same as reward-reg')
 
 parser.add_argument('--grid-size', type=int, default=19,
@@ -285,17 +285,16 @@ def main(args):
     run_name = args.run_name
     seed_size_ori = [args.hidden_dim_manager, args.hidden_dim_worker]
     seed_size = [[128,64],[256,128],[512,256]]
-    seed = 0
-    for _ in range(1):
-        wandb.init(project="fourroom_15_funmpn",
+
+    for seed in range(5):
+        wandb.init(project="fourroom1919_0408",
         config=args.__dict__
         )
         args.seed = seed
         wandb.run.name = f"{run_name}_runseed={seed}"
         experiment(args)
         wandb.finish()
-        seed+=1
-        #args.lr *= 0.1
+
 
 
 
