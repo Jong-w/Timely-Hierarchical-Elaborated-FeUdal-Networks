@@ -3,7 +3,7 @@ import torch
 import cv2
 
 from utils import make_envs, take_action, init_obj
-from meltingpotnet_self import MPnets, mp_loss
+from meltingpotnet_self import THEFUN, mp_loss
 from storage import Storage
 from logger import Logger
 from utils import flatten_fullview_wrapperWrapper
@@ -12,7 +12,7 @@ import wandb
 import time
 import numpy as np
 
-parser = argparse.ArgumentParser(description='MPnet')
+parser = argparse.ArgumentParser(description='THEFUN_self')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=1e-3,
                     help='learning rate')
@@ -47,9 +47,9 @@ parser.add_argument('--grid-size', type=int, default=19,
 
 # SPECIFIC FEUDALNET PARAMETERS
 parser.add_argument('--time-horizon_manager', type=int, default=20,
-                    help='Manager horizon (c_m)')
+                    help=' horizon (c_m)')
 parser.add_argument('--time-horizon_supervisor', type=int, default=10,
-                    help='Manager horizon (c_s)')
+                    help=' horizon (c_s)')
 parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
 parser.add_argument('--hidden-dim-supervisor', type=int, default=256,
@@ -87,7 +87,7 @@ def experiment(args):
                                    int(args.max_steps) // 1000).numpy())
 
     # logger = Logger(args.run_name, args)
-    logger = Logger(args.env_name, 'MPnets_64', args)
+    logger = Logger(args.env_name, 'THEFUN_64', args)
     cuda_is_available = torch.cuda.is_available() and args.cuda
     device = torch.device("cuda" if cuda_is_available else "cpu")
     args.device = device
@@ -98,7 +98,7 @@ def experiment(args):
         torch.backends.cudnn.benchmark = False
 
     envs = make_envs(args.env_name, args.num_workers, args.whole, args.reward_reg, args.env_max_step, args.grid_size)
-    MPnet = MPnets(
+    MPnet = THEFUN(
         num_workers=args.num_workers,
         input_dim=envs.observation_space.shape,
         hidden_dim_manager=args.hidden_dim_manager,

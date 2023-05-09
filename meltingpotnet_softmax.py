@@ -7,7 +7,7 @@ from preprocess import Preprocessor
 from dilated_lstm import DilatedLSTM
 
 
-class MPnets(nn.Module):
+class THEFUN(nn.Module):
     def __init__(self,
                  num_workers,
                  input_dim,
@@ -23,7 +23,7 @@ class MPnets(nn.Module):
                  mlp=True,
                  args=None,
                  whole=1):
-        """naming convention inside the MPnets is selected
+        """naming convention inside the THEFUN is selected
         to match paper variable naming convention.
         """
 
@@ -41,9 +41,9 @@ class MPnets(nn.Module):
 
         self.preprocessor = Preprocessor(input_dim, device, mlp)
         self.percept = Perception(input_dim, self.d, mlp)
-        self.manager = Manager(self.c_m, self.c_s,  self.d, self.r_m , args, device)
-        self.supervisor = Supervisor(self.c_m, self.c_s, self.d, self.n, self.r_s, args, device)
-        self.worker = Worker(self.b, self.c_m, self.c_s, self.d, self.n, self.k, n_actions, device)
+        self.manager = Hierarchy_2(self.c_m, self.c_s,  self.d, self.r_m , args, device)
+        self.supervisor = Hierarchy_1(self.c_m, self.c_s, self.d, self.n, self.r_s, args, device)
+        self.worker = Hierarchy_0(self.b, self.c_m, self.c_s, self.d, self.n, self.k, n_actions, device)
 
         self.hidden_m = init_hidden(args.num_workers, self.r_m  * self.d,
                                     device=device, grad=True)
@@ -160,7 +160,7 @@ class Perception(nn.Module):
     def forward(self, x):
         return self.percept(x)
 
-class Manager(nn.Module):
+class Hierarchy_2(nn.Module):
     def __init__(self, c_m, c_s, d, r_m , args, device):
         super().__init__()
         self.c_m = c_m  # Time Horizon
@@ -223,7 +223,7 @@ class Manager(nn.Module):
 
         return cosine_dist
 
-class Supervisor(nn.Module):
+class Hierarchy_1(nn.Module):
     def __init__(self, c_m, c_s, d, n, r_s, args, device, ):
         super().__init__()
         self.c_m = c_m  # Time Horizon
@@ -284,7 +284,7 @@ class Supervisor(nn.Module):
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
         return cosine_dist
 
-class Worker(nn.Module):
+class Hierarchy_0(nn.Module):
     def __init__(self, b, c_m, c_s, d, n, k, num_actions, device):
         super().__init__()
         self.b = b
@@ -332,15 +332,15 @@ class Worker(nn.Module):
         return a, hidden, value_est
 
     def intrinsic_reward(self, states_s, goals_s, masks):
-        """To calculate the intrinsic reward for the Worker (Eq. 8),
+        """To calculate the intrinsic reward for the Hierarchy_0 (Eq. 8),
         we look at the horizon C, and for each horizon step i, we
         take current state s_t minus horizon state s_{t-i} and
         calculate how similar it is to the goal at timestep s_{t-i}.
 
         Args:
-            states_m: states_m from the Manager, a list of size C,
+            states_m: states_m from the Hierarchy_2, a list of size C,
                     with each tensor of size B x D
-            goals_m: goal vectors from the Manager, a list of size C,
+            goals_m: goal vectors from the Hierarchy_2, a list of size C,
                     with each tensor of size  B x D
 
         remember: our lists are of length c*2 + 1, with c + 1 being the exact
@@ -354,7 +354,7 @@ class Worker(nn.Module):
         state[t] - state[t - c], goal[t - c]
 
         Returns:
-            Intrinsic reward for the Worker
+            Intrinsic reward for the Hierarchy_0
         """
         t_s = self.c_s
         r_i = torch.zeros(self.b, 1).to(self.device)
@@ -370,7 +370,7 @@ class Worker(nn.Module):
         return r_i / self.c_s
 
 def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
-    """Calculate the loss for Worker and Manager,
+    """Calculate the loss for Hierarchy_0 and Hierarchy_2,
 
     with timesteps T, batch size B and hidden dim D. Each of the objects
     below is a list of size T
@@ -383,7 +383,7 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
         logps (B x T): log probabilities.
         entropies (B x T): action-distribution entropy per timestep.
         state_goal_cosines (B x T): Cosine distance between state and goal
-                                    for the Manager.
+                                    for the Hierarchy_2.
         args: argparse arguments, needed for hyper parameters.
     """
     # Discount rewards, both of size B x T
