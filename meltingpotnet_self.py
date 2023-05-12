@@ -7,7 +7,7 @@ from preprocess import Preprocessor
 from dilated_lstm import DilatedLSTM
 
 
-class THEFUN(nn.Module):
+class MPnets(nn.Module):
     def __init__(self,
                  num_workers,
                  input_dim,
@@ -23,7 +23,7 @@ class THEFUN(nn.Module):
                  mlp=True,
                  args=None,
                  whole=1):
-        """naming convention inside the THEFUN is selected
+        """naming convention inside the MPnets is selected
         to match paper variable naming convention.
         """
 
@@ -41,11 +41,11 @@ class THEFUN(nn.Module):
 
         self.preprocessor = Preprocessor(input_dim, device, mlp)
         self.percept = Perception(input_dim, self.d, mlp)
-        self.manager = Hierarchy_2(self.c_m, self.c_s,  self.d, self.r_m , args, device)
-        self.supervisor = Hierarchy_1(self.c_m, self.c_s, self.d, self.n, self.r_s, args, device)
-        self.worker = Hierarchy_0(self.b, self.c_m, self.c_s, self.d, self.n, self.k, n_actions, device)
+        self.manager = Manager(self.c_m, self.c_s, self.d, self.r_m, args, device)
+        self.supervisor = Supervisor(self.c_m, self.c_s, self.d, self.n, self.r_s, args, device)
+        self.worker = Worker(self.b, self.c_m, self.c_s, self.d, self.n, self.k, n_actions, device)
 
-        self.hidden_m = init_hidden(args.num_workers, self.r_m  * self.d,
+        self.hidden_m = init_hidden(args.num_workers, self.r_m * self.d,
                                     device=device, grad=True)
         self.hidden_s = init_hidden(args.num_workers, self.r_s * self.n,
                                     device=device, grad=True)
@@ -56,7 +56,7 @@ class THEFUN(nn.Module):
         self.to(device)
         self.apply(weight_init)
 
-    def forward(self, x, goals_m, states_m, goals_s, states_s,  mask, save=True):
+    def forward(self, x, goals_m, states_m, goals_s, states_s, mask, save=True):
         """A forward pass through the whole feudal network.
 
         Order of operations:
@@ -113,11 +113,11 @@ class THEFUN(nn.Module):
     def intrinsic_reward(self, states_m, goals_m, masks):
         return self.worker.intrinsic_reward(states_m, goals_m, masks)
 
-    def goal_goal_cosine(self, goals_m, goals_s,  masks):
-        return self.manager.goal_goal_cosine(goals_m, goals_s,  masks)
-    
-    def state_goal_m_cosine(self, states_m, goals_s,  masks):
-        return self.manager.state_goal_cosine(states_m, goals_s,  masks)
+    def goal_goal_cosine(self, goals_m, goals_s, masks):
+        return self.manager.goal_goal_cosine(goals_m, goals_s, masks)
+
+    def state_goal_m_cosine(self, states_m, goals_s, masks):
+        return self.manager.state_goal_cosine(states_m, goals_s, masks)
 
     def state_goal_cosine(self, states_m, goals_m, masks):
         return self.supervisor.state_goal_cosine(states_m, goals_m, masks)
@@ -132,12 +132,13 @@ class THEFUN(nn.Module):
     def init_obj(self):
         template_m = torch.zeros(self.b, self.d)
         template_s = torch.zeros(self.b, self.n)
-        goals_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c_m+1)]
-        states_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2*self.c_m+1)]
+        goals_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2 * self.c_m + 1)]
+        states_m = [torch.zeros_like(template_m).to(self.device) for _ in range(2 * self.c_m + 1)]
         goals_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c_s + 1)]
         states_s = [torch.zeros_like(template_s).to(self.device) for _ in range(2 * self.c_s + 1)]
-        masks = [torch.ones(self.b, 1).to(self.device) for _ in range(2*self.c_s+1)]
-        return goals_m, states_m, goals_s, states_s,  masks
+        masks = [torch.ones(self.b, 1).to(self.device) for _ in range(2 * self.c_s + 1)]
+        return goals_m, states_m, goals_s, states_s, masks
+
 
 class Perception(nn.Module):
     def __init__(self, input_dim, d, mlp=False):
@@ -163,8 +164,9 @@ class Perception(nn.Module):
     def forward(self, x):
         return self.percept(x)
 
-class Hierarchy_2(nn.Module):
-    def __init__(self, c_m, c_s, d, r_m , args, device):
+
+class Manager(nn.Module):
+    def __init__(self, c_m, c_s, d, r_m, args, device):
         super().__init__()
         self.c_m = c_m  # Time Horizon
         self.c_s = c_s
@@ -195,7 +197,7 @@ class Hierarchy_2(nn.Module):
 
         return goal, hidden, state, value_est
 
-    def goal_goal_cosine(self, goals_m, goals_s,  masks):
+    def goal_goal_cosine(self, goals_m, goals_s, masks):
         """For the manager, we update using the cosine of:
             cos( S_{t+c} - S_{t}, G_{t} )
 
@@ -216,16 +218,17 @@ class Hierarchy_2(nn.Module):
         t_s = self.c_s
         mask = torch.stack(masks[t_m: t_m + self.c_m - 1]).prod(dim=0)
 
-        #goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
-        #goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
-        #cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
+        # goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
+        # goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
+        # cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
 
         cosine_dist = d_cos(goals_s[t_s + self.c_s] - goals_s[t_s], goals_m[t_m])
 
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
 
         return cosine_dist
-    def state_goal_cosine(self, states_m, goals_m,  masks):
+
+    def state_goal_cosine(self, states_m, goals_m, masks):
         """For the manager, we update using the cosine of:
             cos( S_{t+c} - S_{t}, G_{t} )
 
@@ -246,9 +249,9 @@ class Hierarchy_2(nn.Module):
         t_s = self.c_s
         mask = torch.stack(masks[t_m: t_m + self.c_m - 1]).prod(dim=0)
 
-        #goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
-        #goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
-        #cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
+        # goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
+        # goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
+        # cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
 
         cosine_dist = d_cos(states_m[t_s + self.c_s] - states_m[t_s], goals_m[t_m])
 
@@ -256,7 +259,8 @@ class Hierarchy_2(nn.Module):
 
         return cosine_dist
 
-class Hierarchy_1(nn.Module):
+
+class Supervisor(nn.Module):
     def __init__(self, c_m, c_s, d, n, r_s, args, device, ):
         super().__init__()
         self.c_m = c_m  # Time Horizon
@@ -315,7 +319,8 @@ class Hierarchy_1(nn.Module):
         cosine_dist = mask * cosine_dist.unsqueeze(-1)
         return cosine_dist
 
-class Hierarchy_0(nn.Module):
+
+class Worker(nn.Module):
     def __init__(self, b, c_m, c_s, d, n, k, num_actions, device):
         super().__init__()
         self.b = b
@@ -363,15 +368,15 @@ class Hierarchy_0(nn.Module):
         return a, hidden, value_est
 
     def intrinsic_reward(self, states_s, goals_s, masks):
-        """To calculate the intrinsic reward for the Hierarchy_0 (Eq. 8),
+        """To calculate the intrinsic reward for the Worker (Eq. 8),
         we look at the horizon C, and for each horizon step i, we
         take current state s_t minus horizon state s_{t-i} and
         calculate how similar it is to the goal at timestep s_{t-i}.
 
         Args:
-            states_m: states_m from the Hierarchy_2, a list of size C,
+            states_m: states_m from the Manager, a list of size C,
                     with each tensor of size B x D
-            goals_m: goal vectors from the Hierarchy_2, a list of size C,
+            goals_m: goal vectors from the Manager, a list of size C,
                     with each tensor of size  B x D
 
         remember: our lists are of length c*2 + 1, with c + 1 being the exact
@@ -385,7 +390,7 @@ class Hierarchy_0(nn.Module):
         state[t] - state[t - c], goal[t - c]
 
         Returns:
-            Intrinsic reward for the Hierarchy_0
+            Intrinsic reward for the Worker
         """
         t_s = self.c_s
         r_i = torch.zeros(self.b, 1).to(self.device)
@@ -400,8 +405,9 @@ class Hierarchy_0(nn.Module):
         r_i = r_i.detach()
         return r_i / self.c_s
 
+
 def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
-    """Calculate the loss for Hierarchy_0 and Hierarchy_2,
+    """Calculate the loss for Worker and Manager,
 
     with timesteps T, batch size B and hidden dim D. Each of the objects
     below is a list of size T
@@ -414,7 +420,7 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
         logps (B x T): log probabilities.
         entropies (B x T): action-distribution entropy per timestep.
         state_goal_cosines (B x T): Cosine distance between state and goal
-                                    for the Hierarchy_2.
+                                    for the Manager.
         args: argparse arguments, needed for hyper parameters.
     """
     # Discount rewards, both of size B x T
@@ -436,8 +442,8 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
 
     rewards_intrinsic, value_m, value_s, value_w, ret_w, ret_s, ret_m, logps, entropy, \
         state_goal_cosines, goal_goal_cosines = storage.stack(
-            ['r_i', 'v_m', 'v_s', 'v_w', 'ret_w', 'ret_s', 'ret_m',
-             'logp', 'entropy', 's_goal_cos', 'g_goal_cos'])
+        ['r_i', 'v_m', 'v_s', 'v_w', 'ret_w', 'ret_s', 'ret_m',
+         'logp', 'entropy', 's_goal_cos', 'g_goal_cos'])
 
     # Calculate advantages, size B x T
     advantage_w = ret_w + args.alpha * rewards_intrinsic - value_w
@@ -449,7 +455,6 @@ def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
     loss_manager = (goal_goal_cosines * advantage_m.detach()).mean()
     # loss_supervisor = (goal_goal_cosines * advantage_s.detach()).mean()
     # loss_manager = (state_goal_cosines * advantage_m.detach()).mean()
-
 
     # Update the critics into the right direction
     value_w_loss = 0.5 * advantage_w.pow(2).mean()
