@@ -7,7 +7,7 @@ from preprocess import Preprocessor
 from dilated_lstm import DilatedLSTM
 
 
-class MPnets(nn.Module):
+class THEFUN(nn.Module):
     def __init__(self,
                  num_workers,
                  input_dim,
@@ -23,7 +23,7 @@ class MPnets(nn.Module):
                  mlp=True,
                  args=None,
                  whole=1):
-        """naming convention inside the MPnets is selected
+        """naming convention inside the THEFUN is selected
         to match paper variable naming convention.
         """
 

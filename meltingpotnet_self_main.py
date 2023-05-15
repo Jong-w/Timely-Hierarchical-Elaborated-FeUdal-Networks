@@ -6,7 +6,6 @@ from utils import make_envs, take_action, init_obj
 from meltingpotnet_self import THEFUN, mp_loss
 from storage import Storage
 from logger import Logger
-from utils import flatten_fullview_wrapperWrapper
 
 import wandb
 import time
@@ -16,7 +15,7 @@ parser = argparse.ArgumentParser(description='THEFUN_self')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=1e-3,
                     help='learning rate')
-parser.add_argument('--env-name', type=str, default='MiniGrid-FourRooms-v0',   #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
+parser.add_argument('--env-name', type=str, default='FrostbiteNoFrameskip-v4',  #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=64,
                     help='number of parallel environments to run')
@@ -52,9 +51,9 @@ parser.add_argument('--time-horizon_supervisor', type=int, default=10,
                     help=' horizon (c_s)')
 parser.add_argument('--hidden-dim-manager', type=int, default=256,
                     help='Hidden dim (d)')
-parser.add_argument('--hidden-dim-supervisor', type=int, default=256,
+parser.add_argument('--hidden-dim-supervisor', type=int, default=128,
                     help='Hidden dim for supervisor (k)')
-parser.add_argument('--hidden-dim-worker', type=int, default=128,
+parser.add_argument('--hidden-dim-worker', type=int, default=64,
                     help='Hidden dim for worker (k)')
 parser.add_argument('--gamma-w', type=float, default=0.9,
                     help="discount factor worker")
@@ -97,14 +96,14 @@ def experiment(args):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-    envs = make_envs(args.env_name, args.num_workers, args.whole, args.reward_reg, args.env_max_step, args.grid_size)
+    envs = make_envs(args.env_name, args.num_workers)
     MPnet = THEFUN(
         num_workers=args.num_workers,
         input_dim=envs.observation_space.shape,
         hidden_dim_manager=args.hidden_dim_manager,
         hidden_dim_supervisor=args.hidden_dim_supervisor,
         hidden_dim_worker=args.hidden_dim_worker,
-        n_actions=3,
+        n_actions=envs.single_action_space.n,
         time_horizon_manager=args.time_horizon_manager,
         time_horizon_supervisor=args.time_horizon_supervisor,
         dilation_manager=args.dilation_manager,
@@ -120,7 +119,7 @@ def experiment(args):
 
     goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
     goals_m_test, states_m_test, goals_s_test, states_s_test, masks_test = MPnet.init_obj()
-    x, _ = envs.reset()
+    x = envs.reset()
     step = 0
     step_t_ep=0
     while step < args.max_steps:
@@ -140,21 +139,21 @@ def experiment(args):
 
             # Take a step, log the info, get the next state
             action, logp, entropy = take_action(action_dist)
-            x, reward, done,truncated, info = envs.step(action)
+            x, reward, done, info = envs.step(action)
 
-            infos =[ ]
-            for i in range(len(done)):
-                # empty dict
-                info_temp = {}
+#            infos =[ ]
+#            for i in range(len(done)):
+#                # empty dict
+#                info_temp = {}
+#
+#                info = dict((y, x) for x, y in info)
+#                for dict_name, dict_array in info.items():
+#                    # add dict_name and dict_array[i] to info_temp
+#                    info_temp[dict_name] = dict_array[i]
 
+#                infos.append(info_temp)
 
-                for dict_name, dict_array in info.items():
-                    # add dict_name and dict_array[i] to info_temp
-                    info_temp[dict_name] = dict_array[i]
-
-                infos.append(info_temp)
-
-            logger.log_episode(infos, step)
+            logger.log_episode(info, step)
 
             mask = torch.FloatTensor(1 - done).unsqueeze(-1).to(args.device)
             masks.pop(0)
@@ -173,13 +172,13 @@ def experiment(args):
                 'g_goal_cos': MPnet.state_goal_m_cosine(states_m, goals_m, masks),
                 'm': mask
             })
-            for _i in range(len(done)):
-                if done[_i] or truncated[_i]:
-                    wandb.log(
-                    {"training/episode/reward": infos[_i]['final_info']['returns/episodic_reward'],
-                     "training/episode/length": infos[_i]['final_info']['returns/episodic_length'],
-                     "training/episode/reward_sign": int(infos[_i]['final_info']['returns/episodic_reward']!=-1000)
-                     },step=step)
+ #           for _i in range(len(done)):
+ #               if done[_i] or truncated[_i]:
+ #                   wandb.log(
+ #                   {"training/episode/reward": infos[_i]['final_info']['returns/episodic_reward'],
+ #                    "training/episode/length": infos[_i]['final_info']['returns/episodic_length'],
+ #                    "training/episode/reward_sign": int(infos[_i]['final_info']['returns/episodic_reward']!=-1000)
+ #                    },step=step)
 
 
             step += args.num_workers
