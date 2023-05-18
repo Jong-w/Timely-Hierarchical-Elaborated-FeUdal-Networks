@@ -116,14 +116,12 @@ def experiment(args):
     #optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr, alpha=0.99, eps=1e-5)
     optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)
-
     goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
     goals_m_test, states_m_test, goals_s_test, states_s_test, masks_test = MPnet.init_obj()
     x = envs.reset()
     step = 0
     step_t_ep=0
     while step < args.max_steps:
-
         # Detaching LSTMs and goals_m
         MPnet.repackage_hidden()
         goals_m = [g.detach() for g in goals_m]
