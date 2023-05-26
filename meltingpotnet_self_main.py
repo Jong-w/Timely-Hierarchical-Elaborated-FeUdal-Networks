@@ -139,18 +139,6 @@ def experiment(args):
             action, logp, entropy = take_action(action_dist)
             x, reward, done, info = envs.step(action)
 
-#            infos =[ ]
-#            for i in range(len(done)):
-#                # empty dict
-#                info_temp = {}
-#
-#                info = dict((y, x) for x, y in info)
-#                for dict_name, dict_array in info.items():
-#                    # add dict_name and dict_array[i] to info_temp
-#                    info_temp[dict_name] = dict_array[i]
-
-#                infos.append(info_temp)
-
             logger.log_episode(info, step)
 
             mask = torch.FloatTensor(1 - done).unsqueeze(-1).to(args.device)

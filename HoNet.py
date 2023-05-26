@@ -16,6 +16,7 @@ class HONET(nn.Module):
                  time_horizon_Hierarchies = [20, 15, 10, 5, 1],   #time_horizon & dilation -> time_horizon  # set of time_horizon <- list form
                  n_actions=17,
                  device='cuda',
+                 dynamic=0,
                  args=None):
 
         super().__init__()
@@ -23,6 +24,7 @@ class HONET(nn.Module):
         self.time_horizon = time_horizon_Hierarchies
         c = hidden_dim_Hierarchies
         self.n_actions = n_actions
+        self.dynamic = dynamic
         self.device = device
 
         self.preprocessor = Preprocessor(input_dim, device, mlp=False)
@@ -49,7 +51,7 @@ class HONET(nn.Module):
         self.to(device)
         self.apply(weight_init)
 
-    def forward(self, x, goals_5, states_5, goals_4, states_4, goals_3, states_3, goals_2, states_2,  mask, save=True):
+    def forward(self, x, goals_5, states_5, goals_4, states_4, goals_3, states_3, goals_2, states_2,  mask, step, save=True):
         """A forward pass through the whole feudal network.
 
         Order of operations:
@@ -71,18 +73,10 @@ class HONET(nn.Module):
         hierarchies_selected = self.policy_network(x)  #hierarchies_selectedsms is one-hot encoded form #except Hierarchy1
         z = self.percept(x)
 
-        goal_5, hidden_5, state_5, value_5 = self.Hierarchy5(z, self.hidden_5, mask)
-        if hierarchies_selected[4] == 0:
-            goal_5 = np.zeros(goal_5.shape)
-        goal_4, hidden_4, state_4, value_4 = self.Hierarchy4(z, goal_5, self.hidden_4, mask)
-        if hierarchies_selected[3] == 0:
-            goal_4 = np.zeros(goal_4.shape)
-        goal_3, hidden_3, state_3, value_3 = self.Hierarchy3(z, goal_4, self.hidden_3, mask)
-        if hierarchies_selected[2] == 0:
-            goal_3 = np.zeros(goal_3.shape)
-        goal_2, hidden_2, state_2, value_2 = self.Hierarchy2(z, goal_3, self.hidden_2, mask)
-        if hierarchies_selected[1] == 0:
-            goal_2 = np.zeros(goal_2.shape)
+        goal_5, hidden_5, state_5, value_5 = self.Hierarchy5(z, self.hidden_5, hierarchies_selected[3], mask)
+        goal_4, hidden_4, state_4, value_4 = self.Hierarchy4(z, goal_5, self.hidden_4, hierarchies_selected[2], mask)
+        goal_3, hidden_3, state_3, value_3 = self.Hierarchy3(z, goal_4, self.hidden_3, hierarchies_selected[1], mask)
+        goal_2, hidden_2, state_2, value_2 = self.Hierarchy2(z, goal_3, self.hidden_2, hierarchies_selected[0], mask)
 
         # Ensure that we only have a list of size 2*c + 1, and we use FiLo
         if len(goals_5) > (2 * self.time_horizon[4] + 1):
@@ -113,10 +107,6 @@ class HONET(nn.Module):
 
         goals_2.append(goal_5)
         states_2.append(state_5.detach())
-
-
-        # The manager is ahead at least c steps, so we feed
-        # only the first c+1 states_m to worker
 
         action_dist, hidden_1, value_1 = self.Hierarchy1(z, goal_2, self.hidden_1, mask) #action_dist, hidden_1, state_1, value_1
 
@@ -169,3 +159,122 @@ class HONET(nn.Module):
             masks = [torch.ones(self.hidden_dim[4], 1).to(self.device) for _ in range(2 * self.time_horizon[1] + 1)]
             return goals_5, states_5, goals_4, states_4, goals_3, states_3, goals_2, states_2, masks
 
+class Perception(nn.Module):
+    def __init__(self, input_dim, d, mlp=False):
+        super().__init__()
+        if mlp:
+            self.percept = nn.Sequential(
+                nn.Linear(input_dim[-1] * input_dim[1] * input_dim[2], 256),
+                nn.ReLU(),
+                # nn.Linear(256, 256),
+                # nn.ReLU(),
+                nn.Linear(256, d),
+                nn.ReLU())
+        else:
+            self.percept = nn.Sequential(
+                nn.Conv2d(3, 16, kernel_size=4, stride=4),
+                nn.ReLU(),
+                nn.Conv2d(16, 32, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.modules.Flatten(),
+                nn.Linear(32 * 14 * 14, d),
+                nn.ReLU())
+
+    def forward(self, x):
+        return self.percept(x)
+
+
+###########################################################################################################2차 수정 해야하는 부분.....
+class hierarchy5(nn.Module):
+    def __init__(self, c_m, c_s, d, r_m, args, device):
+        super().__init__()
+        self.c_m = c_m  # Time Horizon
+        self.c_s = c_s
+        self.d = d  # Hidden dimension size
+        self.r = r_m  # Dilation level
+        self.eps = args.eps
+        self.device = device
+
+        self.Mspace = nn.Linear(self.d, self.d)
+        self.Mrnn = DilatedLSTM(self.d, self.d, self.r)
+        self.critic = nn.Linear(self.d, 1)
+
+    def forward(self, z, hidden, mask):
+        state = self.Mspace(z).relu()
+        hidden = (mask * hidden[0], mask * hidden[1])
+        goal_hat, hidden = self.Mrnn(state, hidden)
+        value_est = self.critic(goal_hat)
+
+        # From goal_hat to goal
+        goal = normalize(goal_hat)
+        state = state.detach()
+
+        if (self.eps > torch.rand(1)[0]):
+            # To encourage exploration in transition policy,
+            # at every step with a small probability ε
+            # we emit a random goal sampled from a uni-variate Gaussian.
+            goal = torch.randn_like(goal, requires_grad=False)
+
+        return goal, hidden, state, value_est
+
+    def goal_goal_cosine(self, goals_m, goals_s, masks):
+        """For the manager, we update using the cosine of:
+            cos( S_{t+c} - S_{t}, G_{t} )
+
+        Remember that states_m, goals_m are of size c * 2 + 1, with our current
+        update time step right in the middle at t = c + 1.
+        States should not have a gradient active, but goals_m[t] _should_.
+
+        Args:
+            states_m ([type]): list of size 2*C + 1, each element B x D
+            goals_m ([type]): list of size 2*C + 1, each element B x D
+
+        Returns:
+            [type]: cosine distance between:
+                        the difference state s_{t+c} - s_{t},
+                        the goal embedding at timestep t g_t(theta).
+        """
+        t_m = self.c_m
+        t_s = self.c_s
+        mask = torch.stack(masks[t_m: t_m + self.c_m - 1]).prod(dim=0)
+
+        # goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
+        # goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
+        # cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
+
+        cosine_dist = d_cos(goals_s[t_s + self.c_s] - goals_s[t_s], goals_m[t_m])
+
+        cosine_dist = mask * cosine_dist.unsqueeze(-1)
+
+        return cosine_dist
+
+    def state_goal_cosine(self, states_m, goals_m, masks):
+        """For the manager, we update using the cosine of:
+            cos( S_{t+c} - S_{t}, G_{t} )
+
+        Remember that states_m, goals_m are of size c * 2 + 1, with our current
+        update time step right in the middle at t = c + 1.
+        States should not have a gradient active, but goals_m[t] _should_.
+
+        Args:
+            states_m ([type]): list of size 2*C + 1, each element B x D
+            goals_m ([type]): list of size 2*C + 1, each element B x D
+
+        Returns:
+            [type]: cosine distance between:
+                        the difference state s_{t+c} - s_{t},
+                        the goal embedding at timestep t g_t(theta).
+        """
+        t_m = self.c_m
+        t_s = self.c_s
+        mask = torch.stack(masks[t_m: t_m + self.c_m - 1]).prod(dim=0)
+
+        # goals_s_t1 = torch.cat([goals_s[t_s - self.c_s], goals_s[t_s - self.c_s]], dim=1)
+        # goals_s_t2 = torch.cat([goals_s[t_s], goals_s[t_s]], dim=1)
+        # cosine_dist = d_cos(goals_s_t1 - goals_s_t2, goals_m[t_m])
+
+        cosine_dist = d_cos(states_m[t_s + self.c_s] - states_m[t_s], goals_m[t_m])
+
+        cosine_dist = mask * cosine_dist.unsqueeze(-1)
+
+        return cosine_dist
