@@ -153,12 +153,12 @@ class Perception(nn.Module):
                 nn.ReLU())
         else:
             self.percept = nn.Sequential(
-                nn.Conv2d(3, 16, kernel_size=4, stride=4),
+                nn.Conv2d(3, 32, kernel_size=5, stride=5),
                 nn.ReLU(),
-                nn.Conv2d(16, 32, kernel_size=4, stride=2),
+                nn.Conv2d(32, 64, kernel_size=3, stride=2),
                 nn.ReLU(),
                 nn.modules.Flatten(),
-                nn.Linear(32 * 14 * 14, d),
+                nn.Linear(64 * 20 * 15, d),
                 nn.ReLU())
 
     def forward(self, x):
