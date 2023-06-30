@@ -12,18 +12,24 @@ class HONET(nn.Module):
     def __init__(self,
                  num_workers,
                  input_dim,
-                 hidden_dim_Hierarchies= [256, 128, 64, 32, 16],     # set of hidden_dims <- list form
+                 hidden_dim_Hierarchies = [256, 128, 64, 32, 16],     # set of hidden_dims <- list form
                  time_horizon_Hierarchies = [20, 15, 10, 5, 1],   #time_horizon & dilation -> time_horizon  # set of time_horizon <- list form
                  n_actions=17,
                  device='cuda',
+                 dynamic=0,
                  args=None):
 
         super().__init__()
         self.num_workers = num_workers
         self.time_horizon = time_horizon_Hierarchies
-        c = hidden_dim_Hierarchies
+        self.hidden_dim = hidden_dim_Hierarchies
         self.n_actions = n_actions
+        self.dynamic = dynamic
         self.device = device
+        self.eps = args.eps
+
+        template_0 = torch.zeros(self.b, self.hidden_dim[4])
+        self.goal_0 = [torch.zeros_like(template_0).to(self.device) for _ in range(2 * self.time_horizon[4] + 1)]
 
         self.preprocessor = Preprocessor(input_dim, device, mlp=False)
         self.percept = Perception(input_dim, self.hidden_dim[0], mlp=False)
@@ -49,7 +55,7 @@ class HONET(nn.Module):
         self.to(device)
         self.apply(weight_init)
 
-    def forward(self, x, goals_5, states_5, goals_4, states_4, goals_3, states_3, goals_2, states_2,  mask, save=True):
+    def forward(self, x, goals_5, states_total, goals_4, goals_3, goals_2,  mask, step, save=True):
         """A forward pass through the whole feudal network.
 
         Order of operations:
@@ -61,64 +67,49 @@ class HONET(nn.Module):
 
         Args:
             x (np.ndarray): observation from the environment
-            goals_m (list):  list of goal tensors, length = 2 * r + 1
-            states_m (list): list of state tensors, length = 2 * r + 1
+            goals (list):  list of goal tensors, length = 2 * r + 1
+            states (list): list of state tensors, length = 2 * r + 1
             mask (tensor): mask describing for each worker if episode is done.
             save (bool, optional): If we are calculating next_v, we do not
-                                   store rnn states_m. Defaults to True.
+                                   store rnn states. Defaults to True.
         """
+        train_eps = self.eps
         x = self.preprocessor(x)
         hierarchies_selected = self.policy_network(x)  #hierarchies_selectedsms is one-hot encoded form #except Hierarchy1
+        if train_eps > torch.rand(1)[0]:
+            hierarchies_selected[0] = 0
+        if train_eps > torch.rand(1)[0]:
+            hierarchies_selected[1] = 0
+        if train_eps > torch.rand(1)[0]:
+            hierarchies_selected[2] = 0
+        train_eps * 0.99
+
         z = self.percept(x)
 
-        goal_5, hidden_5, state_5, value_5 = self.Hierarchy5(z, self.hidden_5, mask)
-        if hierarchies_selected[4] == 0:
-            goal_5 = np.zeros(goal_5.shape)
-        goal_4, hidden_4, state_4, value_4 = self.Hierarchy4(z, goal_5, self.hidden_4, mask)
-        if hierarchies_selected[3] == 0:
-            goal_4 = np.zeros(goal_4.shape)
-        goal_3, hidden_3, state_3, value_3 = self.Hierarchy3(z, goal_4, self.hidden_3, mask)
-        if hierarchies_selected[2] == 0:
-            goal_3 = np.zeros(goal_3.shape)
-        goal_2, hidden_2, state_2, value_2 = self.Hierarchy2(z, goal_3, self.hidden_2, mask)
-        if hierarchies_selected[1] == 0:
-            goal_2 = np.zeros(goal_2.shape)
+        goal_5, hidden_5, value_5 = self.Hierarchy5(z, self.goal_0, self.hidden_5, hierarchies_selected[3], mask)
+        goal_4, hidden_4, value_4 = self.Hierarchy4(z, goal_5, self.hidden_4, hierarchies_selected[2], mask)
+        goal_3, hidden_3, value_3 = self.Hierarchy3(z, goal_4, self.hidden_3, hierarchies_selected[1], mask)
+        goal_2, hidden_2, value_2 = self.Hierarchy2(z, goal_3, self.hidden_2, hierarchies_selected[0], mask)
 
         # Ensure that we only have a list of size 2*c + 1, and we use FiLo
         if len(goals_5) > (2 * self.time_horizon[4] + 1):
             goals_5.pop(0)
-            states_5.pop(0)
+            states_total.pop(0)
 
         if len(goals_4) > (2 * self.time_horizon[3] + 1):
             goals_4.pop(0)
-            states_4.pop(0)
 
         if len(goals_3) > (2 * self.time_horizon[2] + 1):
             goals_3.pop(0)
-            states_3.pop(0)
 
         if len(goals_2) > (2 * self.time_horizon[1] + 1):
             goals_2.pop(0)
-            states_2.pop(0)
 
 
         goals_5.append(goal_5)
-        states_5.append(state_5.detach())
+        states_total.append(z.detach())
 
-        goals_4.append(goal_5)
-        states_4.append(state_5.detach())
-
-        goals_3.append(goal_5)
-        states_3.append(state_5.detach())
-
-        goals_2.append(goal_5)
-        states_2.append(state_5.detach())
-
-
-        # The manager is ahead at least c steps, so we feed
-        # only the first c+1 states_m to worker
-
-        action_dist, hidden_1, value_1 = self.Hierarchy1(z, goal_2, self.hidden_1, mask) #action_dist, hidden_1, state_1, value_1
+        action_dist, hidden_1, value_1 = self.Hierarchy1(z, goal_2, self.hidden_1, mask)
 
         if save:
             # Optional, dont do this for the next_v
@@ -128,7 +119,7 @@ class HONET(nn.Module):
             self.hidden_2 = hidden_2
             self.hidden_1 = hidden_1
 
-        return action_dist, goals_5, states_5, value_5, goals_4, states_4, value_4, goals_3, states_3, value_3, goals_2, states_2, value_2, value_1
+        return action_dist, goals_5, states_total, value_5, goals_4, value_4, goals_3, value_3, goals_2, value_2, value_1, hierarchies_selected
 
         def intrinsic_reward(self, states_2, goals_2, masks):
             return self.worker.intrinsic_reward(states_2, goals_2, masks)
@@ -159,13 +150,305 @@ class HONET(nn.Module):
             template_3 = torch.zeros(self.b, self.hidden_dim[2])
             template_2 = torch.zeros(self.b, self.hidden_dim[1])
             goals_5 = [torch.zeros_like(template_5).to(self.device) for _ in range(2 * self.time_horizon[4] + 1)]
-            states_5 = [torch.zeros_like(template_5).to(self.device) for _ in range(2 * self.time_horizon[4] + 1)]
-            goals_4 = [torch.zeros_like(template_5).to(self.device) for _ in range(2 * self.time_horizon[3] + 1)]
-            states_4 = [torch.zeros_like(template_5).to(self.device) for _ in range(2 * self.time_horizon[3] + 1)]
-            goals_3 = [torch.zeros_like(template_5).to(self.device) for _ in range(2 * self.time_horizon[2] + 1)]
-            states_3 = [torch.zeros_like(template_5).to(self.device) for _ in range(2 * self.time_horizon[2] + 1)]
-            goals_2 = [torch.zeros_like(template_5).to(self.device) for _ in range(2 * self.time_horizon[1] + 1)]
-            states_2 = [torch.zeros_like(template_5).to(self.device) for _ in range(2 * self.time_horizon[1] + 1)]
+            states_total = [torch.zeros_like(template_5).to(self.device) for _ in range(2 * self.time_horizon[4] + 1)]
+            goals_4 = [torch.zeros_like(template_4).to(self.device) for _ in range(2 * self.time_horizon[3] + 1)]
+            goals_3 = [torch.zeros_like(template_3).to(self.device) for _ in range(2 * self.time_horizon[2] + 1)]
+            goals_2 = [torch.zeros_like(template_2).to(self.device) for _ in range(2 * self.time_horizon[1] + 1)]
             masks = [torch.ones(self.hidden_dim[4], 1).to(self.device) for _ in range(2 * self.time_horizon[1] + 1)]
-            return goals_5, states_5, goals_4, states_4, goals_3, states_3, goals_2, states_2, masks
+            return goals_5, states_total, goals_4, goals_3, goals_2, masks
 
+class Perception(nn.Module):
+    def __init__(self, input_dim, d, mlp=False):
+        super().__init__()
+        if mlp:
+            self.percept = nn.Sequential(
+                nn.Linear(input_dim[-1] * input_dim[1] * input_dim[2], 256),
+                nn.ReLU(),
+                # nn.Linear(256, 256),
+                # nn.ReLU(),
+                nn.Linear(256, d),
+                nn.ReLU())
+        else:
+            self.percept = nn.Sequential(
+                nn.Conv2d(3, 16, kernel_size=4, stride=4),
+                nn.ReLU(),
+                nn.Conv2d(16, 32, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.modules.Flatten(),
+                nn.Linear(32 * 14 * 14, d),
+                nn.ReLU())
+
+    def forward(self, x):
+        return self.percept(x)
+
+class Policy_Network(nn.Module):
+    def __init__(self):
+        self.policy_network = nn.Sequential(
+                nn.Conv2d(3, 16, kernel_size=4, stride=4),
+                nn.ReLU(),
+                nn.Conv2d(16, 32, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.modules.Flatten(),
+                nn.Linear(32 * 14 * 14, 3),
+                nn.ReLU())
+    def forward(self, x):
+        policy_network_result = self.policy_network(x)
+        policy_network_result -= policy_network_result.min(1, keepdim=True)[0]
+        policy_network_result /= policy_network_result.max(1, keepdim=True)[0]
+        policy_network_result.round()
+        return policy_network_result
+
+class Hierarchy5(nn.Module):
+    def __init__(self, time_horizon, hidden_dim, args, device):
+        super().__init__()
+        self.time_horizon = time_horizon  # Time Horizon
+        self.hidden_dim = hidden_dim  # Hidden dimension size
+        self.eps = args.eps
+        self.device = device
+        self.Mrnn = DilatedLSTM(self.hidden_dim, self.hidden_dim, self.time_horizon)
+        self.critic = nn.Linear(self.hidden_dim, 1)
+
+    def forward(self, z, goal, hidden, hierarchies_selected, mask):
+
+        if hierarchies_selected == 0:
+            return goal, hidden, hidden
+
+        hidden = (mask * hidden[0], mask * hidden[1])
+        goal_hat, hidden = self.Mrnn(z, hidden)
+        value_est = self.critic(goal_hat)
+
+        # From goal_hat to goal
+        goal = normalize(goal_hat)
+
+        if (self.eps > torch.rand(1)[0]):
+            goal = torch.randn_like(goal, requires_grad=False)
+
+        return goal, hidden, value_est
+
+    def state_goal_cosine(self, states, goals, masks):
+
+        t = self.time_horizon
+        mask = torch.stack(masks[t: t + self.time_horizon - 1]).prod(dim=0)
+
+        cosine_dist = d_cos(states[t + t] - states[t], goals[t])
+
+        cosine_dist = mask * cosine_dist.unsqueeze(-1)
+
+        return cosine_dist
+
+class Hierarchy4(nn.Module):
+    def __init__(self, time_horizon, hidden_dim, args, device):
+        super().__init__()
+        self.time_horizon = time_horizon  # Time Horizon
+        self.hidden_dim = hidden_dim  # Hidden dimension size
+        self.eps = args.eps
+        self.device = device
+        self.Mrnn = DilatedLSTM(self.hidden_dim, self.hidden_dim, self.time_horizon)
+        self.critic = nn.Linear(self.hidden_dim, 1)
+
+    def forward(self, z, goal, hidden, hierarchies_selected, mask):
+
+        if hierarchies_selected == 0:
+            return goal, hidden, hidden
+
+        hidden = (mask * hidden[0], mask * hidden[1])
+        goal_hat, hidden = self.Mrnn(z, hidden)
+        value_est = self.critic(goal_hat)
+
+        # From goal_hat to goal
+        goal = normalize(goal_hat)
+
+        if (self.eps > torch.rand(1)[0]):
+            goal = torch.randn_like(goal, requires_grad=False)
+
+        return goal, hidden, value_est
+
+    def state_goal_cosine(self, states, goals, masks):
+
+        t = self.time_horizon
+        mask = torch.stack(masks[t: t + self.time_horizon - 1]).prod(dim=0)
+
+        cosine_dist = d_cos(states[t + t] - states[t], goals[t])
+
+        cosine_dist = mask * cosine_dist.unsqueeze(-1)
+
+        return cosine_dist
+
+class Hierarchy3(nn.Module):
+    def __init__(self, time_horizon, hidden_dim, args, device):
+        super().__init__()
+        self.time_horizon = time_horizon  # Time Horizon
+        self.hidden_dim = hidden_dim  # Hidden dimension size
+        self.eps = args.eps
+        self.device = device
+        self.Mrnn = DilatedLSTM(self.hidden_dim, self.hidden_dim, self.time_horizon)
+        self.critic = nn.Linear(self.hidden_dim, 1)
+
+    def forward(self, z, goal, hidden, hierarchies_selected, mask):
+
+        if hierarchies_selected == 0:
+            return goal, hidden, hidden
+
+        hidden = (mask * hidden[0], mask * hidden[1])
+        goal_hat, hidden = self.Mrnn(z, hidden)
+        value_est = self.critic(goal_hat)
+
+        # From goal_hat to goal
+        goal = normalize(goal_hat)
+
+        if (self.eps > torch.rand(1)[0]):
+            goal = torch.randn_like(goal, requires_grad=False)
+
+        return goal, hidden, value_est
+
+    def state_goal_cosine(self, states, goals, masks):
+
+        t = self.time_horizon
+        mask = torch.stack(masks[t: t + self.time_horizon - 1]).prod(dim=0)
+
+        cosine_dist = d_cos(states[t + t] - states[t], goals[t])
+
+        cosine_dist = mask * cosine_dist.unsqueeze(-1)
+
+        return cosine_dist
+
+class Hierarchy2(nn.Module):
+    def __init__(self, time_horizon, hidden_dim, args, device):
+        super().__init__()
+        self.time_horizon = time_horizon  # Time Horizon
+        self.hidden_dim = hidden_dim  # Hidden dimension size
+        self.eps = args.eps
+        self.device = device
+        self.Mrnn = DilatedLSTM(self.hidden_dim, self.hidden_dim, self.time_horizon)
+        self.critic = nn.Linear(self.hidden_dim, 1)
+
+    def forward(self, z, hidden, mask):
+
+        hidden = (mask * hidden[0], mask * hidden[1])
+        goal_hat, hidden = self.Mrnn(z, hidden)
+        value_est = self.critic(goal_hat)
+
+        # From goal_hat to goal
+        goal = normalize(goal_hat)
+
+        if (self.eps > torch.rand(1)[0]):
+            goal = torch.randn_like(goal, requires_grad=False)
+
+        return goal, hidden, value_est
+
+    def state_goal_cosine(self, states, goals, masks):
+
+        t = self.time_horizon
+        mask = torch.stack(masks[t: t + self.time_horizon - 1]).prod(dim=0)
+
+        cosine_dist = d_cos(states[t + t] - states[t], goals[t])
+
+        cosine_dist = mask * cosine_dist.unsqueeze(-1)
+
+        return cosine_dist
+
+class Hierarchy1(nn.Module):
+    def __init__(self, b, time_horizon, hiddne_dim_5, hidden_dim_2, hidden_dim_1, num_actions, device):
+        super().__init__()
+        self.b = b
+        self.time_horizon = time_horizon
+        self.hidden_dim_1 = hidden_dim_1
+        self.hidden_dim_2 = hidden_dim_2
+        self.num_actions = num_actions
+        self.device = device
+
+        self.Wrnn = nn.LSTMCell(hiddne_dim_5, hidden_dim_1 * self.num_actions)
+        self.phi = nn.Linear(self.hidden_dim_2 , hidden_dim_1, bias=False)
+
+        self.critic = nn.Sequential(
+            nn.Linear(self.hidden_dim_1  * num_actions, 50),
+            nn.ReLU(),
+            nn.Linear(50, 1)
+        )
+
+    def forward(self, z, goal, hidden, mask):
+
+        hidden = (mask * hidden[0], mask * hidden[1])
+        u, cx = self.Wrnn(z, hidden)
+        hidden = (u, cx)
+
+        # Detaching is vital, no end to end training
+        goal = torch.stack(goal).detach().sum(dim=0)
+        w = self.phi(goal)
+        value_est = self.critic(u)
+
+        u = u.reshape(u.shape[0], self.k, self.num_actions)
+        a = torch.einsum("bk, bka -> ba", w, u).softmax(dim=-1)
+
+        return a, hidden, value_est
+
+    def intrinsic_reward(self, states_s, goals_s, masks):
+
+        t = self.time_horizon
+        r_i = torch.zeros(self.b, 1).to(self.device)
+        mask = torch.ones(self.b, 1).to(self.device)
+
+        for i in range(1, self.c_s + 1):
+            r_i_t = d_cos(states_s[t] - states_s[t - i], goals_s[t - i]).unsqueeze(-1)
+            r_i += (mask * r_i_t)
+
+            mask = mask * masks[t - i]
+
+        r_i = r_i.detach()
+        return r_i / self.time_horizon
+
+def mp_loss(storage, next_v_m, next_v_s, next_v_w, args):
+
+    # Discount rewards, both of size B x T
+    ret_m = next_v_m
+    ret_s = next_v_s
+    ret_w = next_v_w
+
+    storage.placeholder()  # Fill ret_m, ret_w with empty vals
+    for i in reversed(range(args.num_steps)):
+        ret_m = storage.r[i] + args.gamma_m * ret_m * storage.m[i]
+        ret_s = storage.r[i] + args.gamma_s * ret_s * storage.m[i]
+        ret_w = storage.r[i] + args.gamma_w * ret_w * storage.m[i]
+        storage.ret_m[i] = ret_m
+        storage.ret_s[i] = ret_s
+        storage.ret_w[i] = ret_w
+
+    # Optionally, normalize the returns
+    storage.normalize(['ret_w', 'ret_s', 'ret_m'])
+
+    rewards_intrinsic, value_m, value_s, value_w, ret_w, ret_s, ret_m, logps, entropy, \
+        state_goal_cosines, goal_goal_cosines, hierarchy_selected = storage.stack(
+        ['r_i', 'v_m', 'v_s', 'v_w', 'ret_w', 'ret_s', 'ret_m',
+         'logp', 'entropy', 's_goal_cos', 'g_goal_cos', 'hierarchy_selected'])
+
+    # Calculate advantages, size B x T
+    advantage_w = ret_w + args.alpha * rewards_intrinsic - value_w
+    loss_worker = (logps * advantage_w.detach()).mean()
+    value_w_loss = 0.5 * advantage_w.pow(2).mean()
+
+    advantage_s = ret_s - value_s
+    loss_supervisor = (state_goal_cosines * advantage_s.detach()).mean()
+    value_s_loss = 0.5 * advantage_s.pow(2).mean()
+
+    advantage_m = ret_m - value_m
+    loss_manager = (goal_goal_cosines * advantage_m.detach()).mean()
+    value_m_loss = 0.5 * advantage_m.pow(2).mean()
+
+    entropy = entropy.mean()
+
+    loss = (- loss_worker - loss_manager - loss_supervisor + value_w_loss + value_s_loss + value_m_loss) - args.entropy_coef * entropy
+
+    return loss, {'loss/total_mp_loss': loss.item(),
+                  'loss/worker': loss_worker.item(),
+                  'loss/supervisor': loss_supervisor.item(),
+                  'loss/manager': loss_manager.item(),
+                  'loss/value_worker': value_w_loss.item(),
+                  'loss/value_supervisor': value_s_loss.item(),
+                  'loss/value_manager': value_m_loss.item(),
+                  'worker/entropy': entropy.item(),
+                  'worker/advantage': advantage_w.mean().item(),
+                  'worker/intrinsic_reward': rewards_intrinsic.mean().item(),
+                  'supervisor/cosines': goal_goal_cosines.mean().item(),
+                  'supervisor/advantage': advantage_s.mean().item(),
+                  'manager/cosines': state_goal_cosines.mean().item(),
+                  'manager/advantage': advantage_m.mean().item()}
