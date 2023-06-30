@@ -158,13 +158,6 @@ def experiment(args):
                 'g_goal_cos': MPnet.state_goal_m_cosine(states_m, goals_m, masks),
                 'm': mask
             })
- #           for _i in range(len(done)):
- #               if done[_i] or truncated[_i]:
- #                   wandb.log(
- #                   {"training/episode/reward": infos[_i]['final_info']['returns/episodic_reward'],
- #                    "training/episode/length": infos[_i]['final_info']['returns/episodic_length'],
- #                    "training/episode/reward_sign": int(infos[_i]['final_info']['returns/episodic_reward']!=-1000)
- #                    },step=step)
 
 
             step += args.num_workers

@@ -106,23 +106,26 @@ def experiment(args):
 
     optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr,alpha=0.99, eps=1e-5)
 
-    goals_5, states_5, goals_4, states_4, goals_3, states_3, goals_2, states_2, masks = MPnet.init_obj()
+    goals_5, states_total, goals_4, goals_3, goals_2, masks = MPnet.init_obj()
 
     x = envs.reset()
     step = 0
     while step < args.max_steps:
         # Detaching LSTMs and goals_m
         MPnet.repackage_hidden()
-        goals_m = [g.detach() for g in goals_m]
-        goals_s = [g.detach() for g in goals_s]
+        goals_5 = [g.detach() for g in goals_5]
+        goals_4 = [g.detach() for g in goals_4]
+        goals_3 = [g.detach() for g in goals_3]
+        goals_2 = [g.detach() for g in goals_2]
+
         storage = Storage(size=args.num_steps,
                           keys=['r', 'r_i', 'v_w', 'v_s', 'v_m', 'logp', 'entropy',
                                 's_goal_cos', 'g_goal_cos', 'mask', 'ret_w', 'ret_s', 'ret_m',
                                 'adv_m', 'adv_w'])
 
         for _ in range(args.num_steps):
-            action_dist, goals_m, states_m, value_m, goals_s, states_s, value_s, value_w \
-                = MPnet(x, goals_5, states_5, goals_4, states_4, goals_3, states_3, goals_2, states_2, masks[-1], step)
+            action_dist, goals_5, states_5, value_5, goals_4, states_4, value_4, goals_3, states_3, value_3, goals_2, states_2, value_2, value_1, hierarchies_selected \
+                = MPnet(x, goals_5, states_total, goals_4, goals_3, goals_2, masks[-1], step)
 
             # Take a step, log the info, get the next state
             action, logp, entropy = take_action(action_dist)
@@ -134,24 +137,34 @@ def experiment(args):
             masks.pop(0)
             masks.append(mask)
 
-            storage.add({
-                'r': torch.FloatTensor(reward).unsqueeze(-1).to(device),
-                'r_i': MPnet.intrinsic_reward(states_s, goals_s, masks),
-                'v_w': value_w,
-                'v_s': value_s,
-                'v_m': value_m,
+            add_ = {'r': torch.FloatTensor(reward).unsqueeze(-1).to(device),
+                'r_i': MPnet.intrinsic_reward(states_2, goals_2, masks),
                 'logp': logp.unsqueeze(-1),
                 'entropy': entropy.unsqueeze(-1),
-                's_goal_cos': MPnet.state_goal_cosine(states_s, goals_s, masks),
-                'g_goal_cos': MPnet.state_goal_m_cosine(states_m, goals_m, masks),
-                'm': mask
-            })
+                'state_goal_5_cos': MPnet.state_goal_cosine(states_5, goals_s, masks,5),
+                'hierarchy_selected': hierarchies_selected,
+                'm': mask}
+
+            if hierarchies_selected[3]:
+                add_['v_5'] = value_5
+                add_['state_goal_5_cos'] = MPnet.state_goal_cosine(states_5, goals_5, masks,5)
+            if hierarchies_selected[2]:
+                add_['v_4'] = value_4
+                add_['state_goal_4_cos'] = MPnet.state_goal_cosine(states_4, goals_4, masks,4)
+            if hierarchies_selected[1]:
+                add_['v_3'] = value_3
+                add_['state_goal_3_cos'] = MPnet.state_goal_cosine(states_3, goals_3, masks,3)
+            if hierarchies_selected[0]:
+                add_['v_2'] = value_2
+                add_['state_goal_2_cos'] = MPnet.state_goal_cosine(states_2, goals_2, masks,2)
+
+            storage.add(add_)
 
             step += args.num_workers
 
         with torch.no_grad():
             _, _, _, next_v_m, _, _, next_v_s, next_v_w = MPnet(
-                x, goals_m, states_m, goals_s, states_s, mask, save=False)
+                x, goals_5, states_5, goals_4, states_4, goals_3, states_3, goals_2, states_2, mask, save=False)
 
             next_v_m = next_v_m.detach()
             next_v_s = next_v_s.detach()
