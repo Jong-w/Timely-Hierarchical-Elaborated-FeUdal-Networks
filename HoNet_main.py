@@ -4,6 +4,8 @@ from HoNet import HONET, mp_loss
 from utils import make_envs, take_action, init_obj
 from storage import Storage
 import wandb
+import torch.optim as optim
+import torch.nn.utils as torch_utils
 
 import argparse
 import torch
@@ -26,7 +28,7 @@ parser.add_argument('--max-steps', type=int, default=int(3e7),
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
 
-parser.add_argument('--grad-clip', type=float, default=1.,
+parser.add_argument('--grad-clip', type=float, default=5.,
                     help='Gradient clipping (recommended).')
 parser.add_argument('--entropy-coef', type=float, default=0.2,
                     help='Entropy coefficient to encourage exploration.')
@@ -65,7 +67,7 @@ parser.add_argument('--gamma-1', type=float, default=0.8,
                     help="discount factor supervisor")
 parser.add_argument('--alpha', type=float, default=0.2,
                     help='Intrinsic reward coefficient in [0, 1]')
-parser.add_argument('--eps', type=float, default=float(1e-3),
+parser.add_argument('--eps', type=float, default=float(1),
                     help='Random Gausian goal for exploration')
 
 parser.add_argument('--dilation_manager', type=int, default=20,
@@ -109,9 +111,13 @@ def experiment(args):
         hidden_dim_Hierarchies = args.hidden_dim_Hierarchies,
         time_horizon_Hierarchies=args.time_horizon_Hierarchies,
         n_actions=envs.single_action_space.n,
-        dynamic = 0,
+        dynamic=0,
         device=device,
         args=args)
+
+
+    #optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+    # In orther to avoid gradient exploding, we apply gradient clipping.
 
     optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr,alpha=0.99, eps=1e-5)
 
@@ -128,9 +134,11 @@ def experiment(args):
         goals_2 = [g.detach() for g in goals_2]
 
         storage = Storage(size=args.num_steps,
-                          keys=['r', 'r_i', 'v_w', 'v_s', 'v_m', 'logp', 'entropy',
-                                's_goal_cos', 'g_goal_cos', 'mask', 'ret_w', 'ret_s', 'ret_m',
-                                'adv_m', 'adv_w'])
+                          keys=['r_i', 'v_5', 'v_4', 'v_3', 'v_2', 'v_1', 'ret_5', 'ret_4', 'ret_3', 'ret_2', 'ret_1',
+                                'logp', 'entropy', 'state_goal_5_cos', 'state_goal_4_cos', 'state_goal_3_cos', 'state_goal_2_cos',
+                                'hierarchy_selected' 'mask', 'ret_5', 'ret_4', 'ret_3', 'ret_2', 'ret_1'])
+
+
 
         for _ in range(args.num_steps):
             action_dist, goals_5, states_total, value_5, goals_4, value_4, goals_3, value_3, goals_2, value_2, value_1, hierarchies_selected \
