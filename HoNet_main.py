@@ -53,12 +53,16 @@ parser.add_argument('--hidden-dim-supervisor', type=int, default=128,
                     help='Hidden dim for supervisor (k)')
 parser.add_argument('--hidden-dim-worker', type=int, default=64,
                     help='Hidden dim for worker (k)')
-parser.add_argument('--gamma-w', type=float, default=0.9,
+parser.add_argument('--gamma-5', type=float, default=0.99,
                     help="discount factor worker")
-parser.add_argument('--gamma-s', type=float, default=0.95,
+parser.add_argument('--gamma-4', type=float, default=0.95,
                     help="discount factor supervisor")
-parser.add_argument('--gamma-m', type=float, default=0.99,
+parser.add_argument('--gamma-3', type=float, default=0.9,
                     help="discount factor manager")
+parser.add_argument('--gamma-2', type=float, default=0.85,
+                    help="discount factor worker")
+parser.add_argument('--gamma-1', type=float, default=0.8,
+                    help="discount factor supervisor")
 parser.add_argument('--alpha', type=float, default=0.2,
                     help='Intrinsic reward coefficient in [0, 1]')
 parser.add_argument('--eps', type=float, default=float(1e-3),
@@ -68,6 +72,11 @@ parser.add_argument('--dilation_manager', type=int, default=20,
                     help='Dilation parameter for manager LSTM.')
 parser.add_argument('--dilation_supervisor', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
+
+parser.add_argument('--hidden-dim-Hierarchies', type=int, default=[256, 256, 256, 256, 256],
+                    help='Hidden dim (d)')
+parser.add_argument('--time_horizon_Hierarchies', type=int, default=[1, 5, 10, 15, 20, 25],
+                    help=' horizon (c_s)')
 
 # EXPERIMENT RELATED PARAMS
 parser.add_argument('--run-name', type=str, default='melting_self',
@@ -124,7 +133,7 @@ def experiment(args):
                                 'adv_m', 'adv_w'])
 
         for _ in range(args.num_steps):
-            action_dist, goals_5, states_5, value_5, goals_4, states_4, value_4, goals_3, states_3, value_3, goals_2, states_2, value_2, value_1, hierarchies_selected \
+            action_dist, goals_5, states_total, value_5, goals_4, value_4, goals_3, value_3, goals_2, value_2, value_1, hierarchies_selected \
                 = MPnet(x, goals_5, states_total, goals_4, goals_3, goals_2, masks[-1], step)
 
             # Take a step, log the info, get the next state
@@ -138,40 +147,43 @@ def experiment(args):
             masks.append(mask)
 
             add_ = {'r': torch.FloatTensor(reward).unsqueeze(-1).to(device),
-                'r_i': MPnet.intrinsic_reward(states_2, goals_2, masks),
+                'r_i': MPnet.intrinsic_reward(states_total, goals_2, masks),
                 'logp': logp.unsqueeze(-1),
                 'entropy': entropy.unsqueeze(-1),
-                'state_goal_5_cos': MPnet.state_goal_cosine(states_5, goals_s, masks,5),
+                #'state_goal_5_cos': MPnet.state_goal_cosine(states_total, goals_5, masks,5),
+                #'state_goal_4_cos': MPnet.state_goal_cosine(states_total, goals_5, masks, 4),
+                #'state_goal_3_cos': MPnet.state_goal_cosine(states_total, goals_5, masks, 3),
+                #'state_goal_2_cos': MPnet.state_goal_cosine(states_total, goals_5, masks, 2),
                 'hierarchy_selected': hierarchies_selected,
                 'm': mask}
 
-            if hierarchies_selected[3]:
-                add_['v_5'] = value_5
-                add_['state_goal_5_cos'] = MPnet.state_goal_cosine(states_5, goals_5, masks,5)
-            if hierarchies_selected[2]:
-                add_['v_4'] = value_4
-                add_['state_goal_4_cos'] = MPnet.state_goal_cosine(states_4, goals_4, masks,4)
-            if hierarchies_selected[1]:
-                add_['v_3'] = value_3
-                add_['state_goal_3_cos'] = MPnet.state_goal_cosine(states_3, goals_3, masks,3)
-            if hierarchies_selected[0]:
-                add_['v_2'] = value_2
-                add_['state_goal_2_cos'] = MPnet.state_goal_cosine(states_2, goals_2, masks,2)
+
+            add_['v_5'] = value_5
+            add_['state_goal_5_cos'] = MPnet.state_goal_cosine(states_total, goals_5, masks, 5)
+            add_['v_4'] = value_4
+            add_['state_goal_4_cos'] = MPnet.state_goal_cosine(states_total, goals_4, masks, 4)
+            add_['v_3'] = value_3
+            add_['state_goal_3_cos'] = MPnet.state_goal_cosine(states_total, goals_3, masks, 3)
+            add_['v_2'] = value_2
+            add_['state_goal_2_cos'] = MPnet.state_goal_cosine(states_total, goals_2, masks, 2)
+            add_['v_1'] = value_1
 
             storage.add(add_)
 
             step += args.num_workers
 
         with torch.no_grad():
-            _, _, _, next_v_m, _, _, next_v_s, next_v_w = MPnet(
-                x, goals_5, states_5, goals_4, states_4, goals_3, states_3, goals_2, states_2, mask, save=False)
+            _, _, _, next_v_5, _, next_v_4, _, next_v_3, _, next_v_2, next_v_1, _  = MPnet(x, goals_5, states_total,
+                                                                                           goals_4, goals_3, goals_2, masks[-1], step, save = False)
 
-            next_v_m = next_v_m.detach()
-            next_v_s = next_v_s.detach()
-            next_v_w = next_v_w.detach()
+            next_v_5 = next_v_5.detach()
+            next_v_4 = next_v_4.detach()
+            next_v_3 = next_v_3.detach()
+            next_v_2 = next_v_2.detach()
+            next_v_1 = next_v_1.detach()
 
         optimizer.zero_grad()
-        loss, loss_dict = mp_loss(storage, next_v_m, next_v_s, next_v_w, args)
+        loss, loss_dict = mp_loss(storage, next_v_5, next_v_4, next_v_3, next_v_2, next_v_1, args)
         wandb.log(loss_dict)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(MPnet.parameters(), args.grad_clip)

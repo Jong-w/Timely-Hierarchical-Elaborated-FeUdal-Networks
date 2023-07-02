@@ -5,14 +5,13 @@ import torch
 class Preprocessor:
     def __init__(self, shape, device='cuda', mlp=False):
         if mlp:
-            self.shape = (shape[-1] * shape[1] * shape[2], ) #shape[-1]
+            self.shape = (shape[-1] * shape[1] * shape[2],) #shape[-1]
         else:
             self.shape = (shape[-1], shape[1], shape[2])
         self.device = device
         self.rms = RunningMeanStd(shape=(1,) + self.shape)
 
     def __call__(self, x):
-        x = x[0]
         x = np.asarray(x).reshape(x.shape[0], *self.shape)
         self.rms.update(x)
         x = x - self.rms.mean

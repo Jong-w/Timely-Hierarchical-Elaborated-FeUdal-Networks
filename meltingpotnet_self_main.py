@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description='THEFUN_self')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--lr', type=float, default=1e-3,
                     help='learning rate')
-parser.add_argument('--env-name', type=str, default='FrostbiteNoFrameskip-v4',  #'MiniGrid-FourRooms-v0' 'MiniGrid-DoorKey-5x5-v0' 'MiniGrid-Empty-16x16-v0'
+parser.add_argument('--env-name', type=str, default='FrostbiteNoFrameskip=-v4', #FrostbiteNoFrameskip-v4
                     help='gym environment name')
 parser.add_argument('--num-workers', type=int, default=64,
                     help='number of parallel environments to run')
@@ -32,7 +32,7 @@ parser.add_argument('--grad-clip', type=float, default=1.,
                     help='Gradient clipping (recommended).')
 parser.add_argument('--entropy-coef', type=float, default=0.2,
                     help='Entropy coefficient to encourage exploration.')
-parser.add_argument('--mlp', type=int, default=1,
+parser.add_argument('--mlp', type=int, default=0,
                     help='toggle to feedforward ML architecture')
 parser.add_argument('--whole', type=int, default=1,
                     help='use whole information of the env')
@@ -117,7 +117,6 @@ def experiment(args):
     optimizer = torch.optim.RMSprop(MPnet.parameters(), lr=args.lr,
                                     alpha=0.99, eps=1e-5)
     goals_m, states_m, goals_s, states_s, masks = MPnet.init_obj()
-    goals_m_test, states_m_test, goals_s_test, states_s_test, masks_test = MPnet.init_obj()
     x = envs.reset()
     step = 0
     step_t_ep=0
@@ -137,9 +136,20 @@ def experiment(args):
 
             # Take a step, log the info, get the next state
             action, logp, entropy = take_action(action_dist)
-            x, reward, done, info = envs.step(action)
+            x, reward, done, trucated, info = envs.step(action)
 
-            logger.log_episode(info, step)
+            infos =[ ]
+            for i in range(len(done)):
+                # empty dict
+                info_temp = {}
+
+                info = dict((y, x) for x, y in info)
+                for dict_name, dict_array in info.items():
+                    info_temp[dict_name] = dict_array[i]
+
+                infos.append(info_temp)
+
+            logger.log_episode(infos, step)
 
             mask = torch.FloatTensor(1 - done).unsqueeze(-1).to(args.device)
             masks.pop(0)
@@ -154,12 +164,9 @@ def experiment(args):
                 'logp': logp.unsqueeze(-1),
                 'entropy': entropy.unsqueeze(-1),
                 's_goal_cos': MPnet.state_goal_cosine(states_s, goals_s, masks),
-                #'g_goal_cos': MPnet.goal_goal_cosine(goals_m, goals_s,  masks),
                 'g_goal_cos': MPnet.state_goal_m_cosine(states_m, goals_m, masks),
                 'm': mask
             })
-
-
             step += args.num_workers
 
         with torch.no_grad():
