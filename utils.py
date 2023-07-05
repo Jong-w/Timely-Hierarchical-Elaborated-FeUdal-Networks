@@ -61,7 +61,7 @@ def make_envs(env_name, num_envs, seed=0):
     else:
         wrapper_fn = basic_wrapper
     #envs = gym.vector.AsyncVectorEnv([lambda: gym.make(env_name, frameskip=1)] * num_envs)
-    envs = gym.vector.make(env_name, num_envs, wrappers=basic_wrapper)
+    envs = gym.vector.make(env_name, num_envs, wrappers=atari_wrapper)
     #envs.seed(seed)
     return envs
 

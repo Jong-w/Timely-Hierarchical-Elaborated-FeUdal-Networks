@@ -80,11 +80,11 @@ class HONET(nn.Module):
         x = self.preprocessor(x)
         hierarchies_selected = self.policy_network(x)
         if train_eps > torch.rand(1)[0]:
-            hierarchies_selected[0] = 0
+            hierarchies_selected[:, 0] = 0
         if train_eps > torch.rand(1)[0]:
-            hierarchies_selected[1] = 0
+            hierarchies_selected[:, 1] = 0
         if train_eps > torch.rand(1)[0]:
-            hierarchies_selected[2] = 0
+            hierarchies_selected[:, 2] = 0
         train_eps * 0.99
 
         z, hidden_percept = self.percept(x, self.hidden_percept, mask)
@@ -168,13 +168,13 @@ class Perception(nn.Module):
     def __init__(self, d, time_horizon,  mlp=False):
         super().__init__()
         self.percept = nn.Sequential(
-            nn.Conv2d(3, 16, kernel_size=5, stride=5),
-            nn.ReLU(),
-            nn.Conv2d(16, 32, kernel_size=4, stride=2),
-            nn.ReLU(),
-            nn.modules.Flatten(),
-            nn.Linear(32 * 20 * 15, d),
-            nn.ReLU())
+                nn.Conv2d(3, 16, kernel_size=4, stride=4),
+                nn.ReLU(),
+                nn.Conv2d(16, 32, kernel_size=3, stride=3),
+                nn.ReLU(),
+                nn.modules.Flatten(),
+                nn.Linear(32 * 7 * 7, d),
+                nn.ReLU())
         self.Mrnn = DilatedLSTM(d, d, time_horizon)
 
     def forward(self, x, hidden, mask):
@@ -187,19 +187,19 @@ class Policy_Network(nn.Module):
     def __init__(self):
         super().__init__()
         self.policy_network = nn.Sequential(
-                nn.Conv2d(3, 16, kernel_size=5, stride=5),
+                nn.Conv2d(3, 16, kernel_size=4, stride=4),
                 nn.ReLU(),
-                nn.Conv2d(16, 32, kernel_size=4, stride=2),
+                nn.Conv2d(16, 32, kernel_size=3, stride=3),
                 nn.ReLU(),
                 nn.modules.Flatten(),
-                nn.Linear(32 * 20 * 15, 3),
+                nn.Linear(32 * 7 * 7, 3),
                 nn.ReLU())
     def forward(self, x):
         policy_network_result = self.policy_network(x)
-        policy_network_result -= policy_network_result.min(1, keepdim=True)[0]
-        policy_network_result /= policy_network_result.max(1, keepdim=True)[0]
+        policy_network_result = policy_network_result - policy_network_result.min(1, keepdim=True)[0]
+        policy_network_result = policy_network_result / policy_network_result.max(1, keepdim=True)[0]
         policy_network_result = policy_network_result.round()
-        return policy_network_result
+        return policy_network_result.type(torch.int)
 
 class Hierarchy5(nn.Module):
     def __init__(self, time_horizon, hidden_dim, args, device):
@@ -211,20 +211,20 @@ class Hierarchy5(nn.Module):
         self.Mrnn = DilatedLSTM(self.hidden_dim, self.hidden_dim, self.time_horizon)
         self.critic = nn.Linear(self.hidden_dim, 1)
 
-    def forward(self, z, goal, hidden, hierarchies_selected, mask):
-
+    def forward(self, z, goals, hidden, hierarchies_selected, mask):
         hidden = (mask * hidden[0], mask * hidden[1])
         goal_hat, hidden = self.Mrnn(z, hidden)
         value_est = self.critic(goal_hat)
 
-        # From goal_hat to goal
-        goal = normalize(goal_hat)
+        hierarchies_selected = hierarchies_selected.reshape(64, 1)
+        goal = hierarchies_selected.expand(64, self.hidden_dim) * goal_hat + 1e-9
+
+        #goal = goal_hat + goal_
+
+        goal = normalize(goal)
 
         if (self.eps > torch.rand(1)[0]):
             goal = torch.randn_like(goal, requires_grad=False)
-
-        hierarchies_selected = hierarchies_selected.reshape(64, 1)
-        goal = hierarchies_selected.expand(64,256) * goal + 1e-7
 
         return goal, hidden, value_est
 
@@ -249,21 +249,21 @@ class Hierarchy4(nn.Module):
         self.Mrnn = DilatedLSTM(self.hidden_dim, self.hidden_dim, self.time_horizon)
         self.critic = nn.Linear(self.hidden_dim, 1)
 
-    def forward(self, z, goal, hidden, hierarchies_selected, mask):
-
+    def forward(self, z, goals, hidden, hierarchies_selected, mask):
         hidden = (mask * hidden[0], mask * hidden[1])
         goal_hat, hidden = self.Mrnn(z, hidden)
         value_est = self.critic(goal_hat)
 
-        # From goal_hat to goal
-        goal_hat = goal_hat + goal
-        goal = normalize(goal_hat)
+        hierarchies_selected = hierarchies_selected.reshape(64, 1)
+        goal_hat = hierarchies_selected.expand(64, self.hidden_dim) * goal_hat + 1e-9
+
+        #goal = torch.stack(goals).detach().sum(dim=0)
+        goal = goal_hat + goals
+
+        goal = normalize(goal)
 
         if (self.eps > torch.rand(1)[0]):
             goal = torch.randn_like(goal, requires_grad=False)
-
-        hierarchies_selected = hierarchies_selected.reshape(64, 1)
-        goal = hierarchies_selected.expand(64,256) * goal + 1e-7
 
         return goal, hidden, value_est
 
@@ -288,24 +288,23 @@ class Hierarchy3(nn.Module):
         self.Mrnn = DilatedLSTM(self.hidden_dim, self.hidden_dim, self.time_horizon)
         self.critic = nn.Linear(self.hidden_dim, 1)
 
-    def forward(self, z, goal, hidden, hierarchies_selected, mask):
-
+    def forward(self, z, goals, hidden, hierarchies_selected, mask):
         hidden = (mask * hidden[0], mask * hidden[1])
         goal_hat, hidden = self.Mrnn(z, hidden)
         value_est = self.critic(goal_hat)
 
-        # From goal_hat to goal
-        goal_hat = goal_hat + goal
-        goal = normalize(goal_hat)
+        hierarchies_selected = hierarchies_selected.reshape(64, 1)
+        goal_hat = hierarchies_selected.expand(64, self.hidden_dim) * goal_hat + 1e-9
+
+        #goal = torch.stack(goals).detach().sum(dim=0)
+        goal = goal_hat + goals
+
+        goal = normalize(goal)
 
         if (self.eps > torch.rand(1)[0]):
             goal = torch.randn_like(goal, requires_grad=False)
 
-        hierarchies_selected = hierarchies_selected.reshape(64, 1)
-        goal = hierarchies_selected.expand(64,256) * goal + 1e-7
-
         return goal, hidden, value_est
-
     def state_goal_cosine(self, states, goals, masks):
 
         t = self.time_horizon
@@ -327,15 +326,16 @@ class Hierarchy2(nn.Module):
         self.Mrnn = DilatedLSTM(self.hidden_dim, self.hidden_dim, self.time_horizon)
         self.critic = nn.Linear(self.hidden_dim, 1)
 
-    def forward(self, z, goal, hidden, mask):
+    def forward(self, z, goals, hidden, mask):
 
         hidden = (mask * hidden[0], mask * hidden[1])
         goal_hat, hidden = self.Mrnn(z, hidden)
         value_est = self.critic(goal_hat)
 
         # From goal_hat to goal
-        goal_hat = goal_hat + goal
-        goal = normalize(goal_hat)
+        #goal = torch.stack(goals).detach().sum(dim=0)
+        goal = goal_hat + goals
+        goal = normalize(goal)
 
         if (self.eps > torch.rand(1)[0]):
             goal = torch.randn_like(goal, requires_grad=False)
@@ -372,14 +372,14 @@ class Hierarchy1(nn.Module):
             nn.Linear(50, 1)
         )
 
-    def forward(self, z, goal, hidden, mask):
+    def forward(self, z, goals, hidden, mask):
 
         hidden = (mask * hidden[0], mask * hidden[1])
         u, cx = self.Wrnn(z, hidden)
         hidden = (u, cx)
 
         # Detaching is vital, no end to end training
-        goal = torch.stack(goal).detach().sum(dim=0)
+        goal = torch.stack(goals).detach().sum(dim=0)
         w = goal
         #w = self.phi(goal)
         value_est = self.critic(u)
@@ -397,7 +397,7 @@ class Hierarchy1(nn.Module):
 
         for i in range(1, self.time_horizon + 1):
             r_i_t = d_cos(states_s[t] - states_s[t - i], goals_s[t - i]).unsqueeze(-1)
-            r_i += (mask * r_i_t)
+            r_i = r_i + (mask * r_i_t)
 
             mask = mask * masks[t - i]
 

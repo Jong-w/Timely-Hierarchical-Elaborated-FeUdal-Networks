@@ -11,7 +11,7 @@ import argparse
 import torch
 import cv2
 
-parser = argparse.ArgumentParser(description='THEFUN_self')
+parser = argparse.ArgumentParser(description='Honet')
 # GENERIC RL/MODEL PARAMETERS
 parser.add_argument('--dynamic', type=int, default=0,
                     help='dynamic_neural_network or not')
@@ -23,7 +23,7 @@ parser.add_argument('--num-workers', type=int, default=64,
                     help='number of parallel environments to run')
 parser.add_argument('--num-steps', type=int, default=1000,
                     help='number of steps the agent takes before updating')
-parser.add_argument('--max-steps', type=int, default=int(3e7),
+parser.add_argument('--max-steps', type=int, default=int(1e8),
                     help='maximum number of training steps in total')
 parser.add_argument('--cuda', type=bool, default=True,
                     help='Add cuda')
@@ -67,7 +67,7 @@ parser.add_argument('--gamma-1', type=float, default=0.8,
                     help="discount factor supervisor")
 parser.add_argument('--alpha', type=float, default=0.2,
                     help='Intrinsic reward coefficient in [0, 1]')
-parser.add_argument('--eps', type=float, default=float(1),
+parser.add_argument('--eps', type=float, default=float(1e-1),
                     help='Random Gausian goal for exploration')
 
 parser.add_argument('--dilation_manager', type=int, default=20,
@@ -75,7 +75,7 @@ parser.add_argument('--dilation_manager', type=int, default=20,
 parser.add_argument('--dilation_supervisor', type=int, default=10,
                     help='Dilation parameter for manager LSTM.')
 
-parser.add_argument('--hidden-dim-Hierarchies', type=int, default=[256, 256, 256, 256, 256],
+parser.add_argument('--hidden-dim-Hierarchies', type=int, default=[84, 84, 84, 84, 84],
                     help='Hidden dim (d)')
 parser.add_argument('--time_horizon_Hierarchies', type=int, default=[1, 5, 10, 15, 20, 25],
                     help=' horizon (c_s)')
@@ -149,6 +149,7 @@ def experiment(args):
             x, reward, done, info = envs.step(action)
 
             logger.log_episode(info, step)
+            wandb.log({'training reward':reward})
 
             mask = torch.FloatTensor(1 - done).unsqueeze(-1).to(args.device)
             masks.pop(0)
@@ -158,10 +159,6 @@ def experiment(args):
                 'r_i': MPnet.intrinsic_reward(states_total, goals_2, masks),
                 'logp': logp.unsqueeze(-1),
                 'entropy': entropy.unsqueeze(-1),
-                #'state_goal_5_cos': MPnet.state_goal_cosine(states_total, goals_5, masks,5),
-                #'state_goal_4_cos': MPnet.state_goal_cosine(states_total, goals_5, masks, 4),
-                #'state_goal_3_cos': MPnet.state_goal_cosine(states_total, goals_5, masks, 3),
-                #'state_goal_2_cos': MPnet.state_goal_cosine(states_total, goals_5, masks, 2),
                 'hierarchy_selected': hierarchies_selected,
                 'm': mask}
 
@@ -181,7 +178,7 @@ def experiment(args):
             step += args.num_workers
 
         with torch.no_grad():
-            _, _, _, next_v_5, _, next_v_4, _, next_v_3, _, next_v_2, next_v_1, _  = MPnet(x, goals_5, states_total,
+            _, _, _, next_v_5, _, next_v_4, _, next_v_3, _, next_v_2, next_v_1, _ = MPnet(x, goals_5, states_total,
                                                                                            goals_4, goals_3, goals_2, masks[-1], step, save = False)
 
             next_v_5 = next_v_5.detach()
@@ -194,7 +191,7 @@ def experiment(args):
         loss, loss_dict = mp_loss(storage, next_v_5, next_v_4, next_v_3, next_v_2, next_v_1, args)
         wandb.log(loss_dict)
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(MPnet.parameters(), args.grad_clip)
+        torch.nn.utils.clip_grad_value_(MPnet.parameters(), clip_value=args.grad_clip)
         optimizer.step()
         logger.log_scalars(loss_dict, step)
 
